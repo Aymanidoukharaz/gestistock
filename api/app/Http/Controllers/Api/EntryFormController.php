@@ -3,87 +3,67 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\EntryFormRequest;
+use App\Http\Resources\ApiResponse;
+use App\Http\Resources\EntryFormCollection;
+use App\Http\Resources\EntryFormResource;
 use App\Models\EntryForm;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class EntryFormController extends Controller
 {
     /**
      * Display a listing of the resource.
-     */
-    public function index()
+     */    public function index()
     {
-        $entries = EntryForm::with('supplier')->paginate(10);
-        return response()->json($entries);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'reference' => 'required|string|max:255|unique:entry_forms,reference',
-            'date' => 'required|date',
-            'supplier_id' => 'required|exists:suppliers,id',
-            'status' => 'required|string',
-            'total' => 'required|numeric|min:0',
-            'user_id' => 'required|exists:users,id',
+        $entries = EntryForm::with(['supplier', 'user', 'entryItems', 'entryItems.product'])->paginate(10);
+        return (new EntryFormCollection($entries))->additional([
+            'success' => true,
+            'message' => 'Liste des bons d\'entrée récupérée avec succès'
         ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        $entry = EntryForm::create($request->all());
-        return response()->json($entry, 201);
+    }/**
+     * Store a newly created resource in storage.
+     */    public function store(EntryFormRequest $request)
+    {
+        // La validation est déjà gérée par la classe EntryFormRequest
+        $entry = EntryForm::create($request->validated());
+        $entry->load(['supplier', 'user', 'entryItems', 'entryItems.product']);
+        return ApiResponse::success(new EntryFormResource($entry), 'Bon d\'entrée créé avec succès', 201);
     }
 
     /**
      * Display the specified resource.
-     */
-    public function show(string $id)
+     */    public function show(string $id)
     {
-        $entry = EntryForm::with('supplier')->find($id);
+        $entry = EntryForm::with(['supplier', 'user', 'entryItems', 'entryItems.product'])->find($id);
         if (!$entry) {
-            return response()->json(['message' => 'Bon d\'entrée non trouvé'], 404);
+            return ApiResponse::notFound('Bon d\'entrée non trouvé');
         }
-        return response()->json($entry);
-    }
-
-    /**
+        return ApiResponse::success(new EntryFormResource($entry), 'Bon d\'entrée récupéré avec succès');
+    }/**
      * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+     */    public function update(EntryFormRequest $request, string $id)
     {
         $entry = EntryForm::find($id);
         if (!$entry) {
-            return response()->json(['message' => "Bon d'entrée non trouvé"], 404);
+            return ApiResponse::notFound('Bon d\'entrée non trouvé');
         }
-        $validator = Validator::make($request->all(), [
-            'reference' => 'required|string|max:255|unique:entry_forms,reference,' . $id,
-            'date' => 'required|date',
-            'supplier_id' => 'required|exists:suppliers,id',
-            'status' => 'required|string',
-            'total' => 'required|numeric|min:0',
-            'user_id' => 'required|exists:users,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        $entry->update($request->all());
-        return response()->json($entry);
+        
+        // La validation est déjà gérée par la classe EntryFormRequest
+        $entry->update($request->validated());
+        $entry->load(['supplier', 'user', 'entryItems', 'entryItems.product']);
+        return ApiResponse::success(new EntryFormResource($entry), 'Bon d\'entrée mis à jour avec succès');
     }
 
     /**
      * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+     */    public function destroy(string $id)
     {
         $entry = EntryForm::find($id);
         if (!$entry) {
-            return response()->json(['message' => 'Bon d\'entrée non trouvé'], 404);
+            return ApiResponse::notFound('Bon d\'entrée non trouvé');
         }
         $entry->delete();
-        return response()->json(['message' => 'Bon d\'entrée supprimé avec succès']);
+        return ApiResponse::success(null, 'Bon d\'entrée supprimé avec succès');
     }
 }

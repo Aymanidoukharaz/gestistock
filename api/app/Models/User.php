@@ -68,4 +68,35 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    /**
+     * Vérifie si l'utilisateur a un rôle spécifique
+     *
+     * @param string $role Le rôle à vérifier ('admin' ou 'magasinier')
+     * @return bool Retourne vrai si l'utilisateur a le rôle spécifié
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un administrateur
+     *
+     * @return bool Retourne vrai si l'utilisateur est admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un magasinier
+     *
+     * @return bool Retourne vrai si l'utilisateur est magasinier
+     */
+    public function isMagasinier(): bool
+    {
+        return $this->hasRole('magasinier');
+    }
 }

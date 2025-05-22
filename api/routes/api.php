@@ -23,30 +23,89 @@ use App\Http\Controllers\Api\ExitFormController;
 
 // Routes d'authentification
 Route::group(['prefix' => 'auth'], function () {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::get('user', [AuthController::class, 'me']);
+    Route::post('login', [AuthController::class, 'login'])->name('login');
+      // Routes protégées par le middleware auth:api
+    Route::middleware('auth:api')->group(function () {
+        Route::post('logout', [AuthController::class, 'logout']);
+        Route::post('refresh', [AuthController::class, 'refresh']);
+        Route::get('user', [AuthController::class, 'me']);
+        Route::post('register', [AuthController::class, 'register']);
+    });
 });
 
-
-// Routes pour les catégories
-Route::apiResource('categories', CategoryController::class);
-
-// Routes pour les produits
-Route::apiResource('products', ProductController::class);
-
-// Routes pour les fournisseurs
-Route::apiResource('suppliers', SupplierController::class);
-
-// Routes pour les mouvements de stock
-Route::apiResource('stock-movements', StockMovementController::class);
-
-// Routes pour les bons d'entrée
-Route::apiResource('entry-forms', EntryFormController::class);
-
-// Routes pour les bons de sortie
-Route::apiResource('exit-forms', ExitFormController::class);
+// Routes protégées nécessitant une authentification
+Route::middleware('auth:api')->group(function () {
+    
+    // Routes communes à tous les utilisateurs authentifiés (admin et magasinier)
+    Route::group(['middleware' => 'role:admin,magasinier'], function () {
+        // Consultation des produits
+        Route::get('products', [ProductController::class, 'index']);
+        Route::get('products/{product}', [ProductController::class, 'show']);
+        
+        // Consultation des catégories
+        Route::get('categories', [CategoryController::class, 'index']);
+        Route::get('categories/{category}', [CategoryController::class, 'show']);
+        
+        // Consultation des fournisseurs
+        Route::get('suppliers', [SupplierController::class, 'index']);
+        Route::get('suppliers/{supplier}', [SupplierController::class, 'show']);
+        
+        // Consultation des mouvements de stock
+        Route::get('stock-movements', [StockMovementController::class, 'index']);
+        Route::get('stock-movements/{stockMovement}', [StockMovementController::class, 'show']);
+        
+        // Consultation des bons d'entrée
+        Route::get('entry-forms', [EntryFormController::class, 'index']);
+        Route::get('entry-forms/{entryForm}', [EntryFormController::class, 'show']);
+        
+        // Consultation des bons de sortie
+        Route::get('exit-forms', [ExitFormController::class, 'index']);
+        Route::get('exit-forms/{exitForm}', [ExitFormController::class, 'show']);
+    });
+    
+    // Routes réservées aux administrateurs
+    Route::group(['middleware' => 'role:admin'], function () {
+        // Gestion des utilisateurs (admin uniquement)
+        Route::get('users', [\App\Http\Controllers\Api\UserController::class, 'index']);
+        Route::post('users', [\App\Http\Controllers\Api\AuthController::class, 'register']);
+        Route::get('users/{id}', [\App\Http\Controllers\Api\UserController::class, 'show']);
+        Route::put('users/{id}', [\App\Http\Controllers\Api\UserController::class, 'update']);
+        Route::patch('users/{id}/toggle-active', [\App\Http\Controllers\Api\UserController::class, 'toggleActive']);
+        
+        // Gestion des catégories (admin uniquement)
+        Route::post('categories', [CategoryController::class, 'store']);
+        Route::put('categories/{category}', [CategoryController::class, 'update']);
+        Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+        
+        // Gestion des fournisseurs (admin uniquement)
+        Route::post('suppliers', [SupplierController::class, 'store']);
+        Route::put('suppliers/{supplier}', [SupplierController::class, 'update']);
+        Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy']);
+    });
+    
+    // Routes pour les opérations partagées (admin et magasinier mais avec des permissions différentes)
+    // Ces opérations peuvent être effectuées par les deux rôles, mais les restrictions seront gérées au niveau des contrôleurs
+    
+    // Gestion des produits
+    Route::post('products', [ProductController::class, 'store'])->middleware('role:admin');
+    Route::put('products/{product}', [ProductController::class, 'update'])->middleware('role:admin');
+    Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('role:admin');
+    
+    // Gestion des mouvements de stock
+    Route::post('stock-movements', [StockMovementController::class, 'store'])->middleware('role:admin,magasinier');
+    Route::put('stock-movements/{stockMovement}', [StockMovementController::class, 'update'])->middleware('role:admin');
+    Route::delete('stock-movements/{stockMovement}', [StockMovementController::class, 'destroy'])->middleware('role:admin');
+    
+    // Gestion des bons d'entrée
+    Route::post('entry-forms', [EntryFormController::class, 'store'])->middleware('role:admin,magasinier');
+    Route::put('entry-forms/{entryForm}', [EntryFormController::class, 'update'])->middleware('role:admin');
+    Route::delete('entry-forms/{entryForm}', [EntryFormController::class, 'destroy'])->middleware('role:admin');
+    
+    // Gestion des bons de sortie
+    Route::post('exit-forms', [ExitFormController::class, 'store'])->middleware('role:admin,magasinier');
+    Route::put('exit-forms/{exitForm}', [ExitFormController::class, 'update'])->middleware('role:admin');
+    Route::delete('exit-forms/{exitForm}', [ExitFormController::class, 'destroy'])->middleware('role:admin');
+});
 
 // Ajoute ici les routes spécifiques si besoin
 // Exemple : Route::get('products/low-stock', [ProductController::class, 'lowStock']);

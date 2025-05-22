@@ -3,83 +3,65 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SupplierRequest;
+use App\Http\Resources\ApiResponse;
+use App\Http\Resources\SupplierCollection;
+use App\Http\Resources\SupplierResource;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SupplierController extends Controller
 {
     /**
      * Display a listing of the resource.
-     */
-    public function index()
+     */    public function index()
     {
-        $suppliers = Supplier::paginate(10);
-        return response()->json($suppliers);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:suppliers,email',
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string|max:255',
+        $suppliers = Supplier::withCount('entryForms')->paginate(10);
+        return (new SupplierCollection($suppliers))->additional([
+            'success' => true,
+            'message' => 'Liste des fournisseurs récupérée avec succès'
         ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        $supplier = Supplier::create($request->all());
-        return response()->json($supplier, 201);
+    }/**
+     * Store a newly created resource in storage.
+     */    public function store(SupplierRequest $request)
+    {
+        // La validation est déjà gérée par la classe SupplierRequest
+        $supplier = Supplier::create($request->validated());
+        return ApiResponse::success(new SupplierResource($supplier), 'Fournisseur créé avec succès', 201);
     }
 
     /**
      * Display the specified resource.
-     */
-    public function show(string $id)
+     */    public function show(string $id)
     {
-        $supplier = Supplier::find($id);
+        $supplier = Supplier::withCount('entryForms')->find($id);
         if (!$supplier) {
-            return response()->json(['message' => 'Fournisseur non trouvé'], 404);
+            return ApiResponse::notFound('Fournisseur non trouvé');
         }
-        return response()->json($supplier);
-    }
-
-    /**
+        return ApiResponse::success(new SupplierResource($supplier), 'Fournisseur récupéré avec succès');
+    }/**
      * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+     */    public function update(SupplierRequest $request, string $id)
     {
         $supplier = Supplier::find($id);
         if (!$supplier) {
-            return response()->json(['message' => 'Fournisseur non trouvé'], 404);
+            return ApiResponse::notFound('Fournisseur non trouvé');
         }
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:suppliers,email,' . $id,
-            'phone' => 'nullable|string|max:50',
-            'address' => 'nullable|string|max:255',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        $supplier->update($request->all());
-        return response()->json($supplier);
+        
+        // La validation est déjà gérée par la classe SupplierRequest
+        $supplier->update($request->validated());
+        return ApiResponse::success(new SupplierResource($supplier), 'Fournisseur mis à jour avec succès');
     }
 
     /**
      * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+     */    public function destroy(string $id)
     {
         $supplier = Supplier::find($id);
         if (!$supplier) {
-            return response()->json(['message' => 'Fournisseur non trouvé'], 404);
+            return ApiResponse::notFound('Fournisseur non trouvé');
         }
         $supplier->delete();
-        return response()->json(['message' => 'Fournisseur supprimé avec succès']);
+        return ApiResponse::success(null, 'Fournisseur supprimé avec succès');
     }
 }

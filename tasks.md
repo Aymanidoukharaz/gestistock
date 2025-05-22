@@ -25,16 +25,17 @@
 - [x] Test de l'accessibilité et du bon fonctionnement de toutes les routes API
 
 ## Phase 7: Classes de Requête pour Validation
-- [ ] Créer des classes de FormRequest pour la validation des données de chaque entité
-- [ ] Test des validations avec différentes données d'entrée (valides et invalides)
+- [x] Créer des classes de FormRequest pour la validation des données de chaque entité
+- [x] Test des validations avec différentes données d'entrée (valides et invalides)
 
 ## Phase 8: Transformation des Réponses API
-- [ ] Implémenter des transformations de données pour standardiser les réponses API
-- [ ] Test de la structure et du format des réponses API
+- [x] Implémenter des transformations de données pour standardiser les réponses API
+- [x] Test de la structure et du format des réponses API
 
 ## Phase 9: Autorisations et Middleware
-- [ ] Configurer les middlewares pour contrôler l'accès aux routes selon les rôles (admin, magasinier)
-- [ ] Test des autorisations avec différents rôles d'utilisateurs
+- [x] Configurer les middlewares pour contrôler l'accès aux routes selon les rôles (admin, magasinier)
+- [x] Test des autorisations avec différents rôles d'utilisateurs
+- [x] Documentation du système d'autorisation et des rôles
 
 ## Phase 10: Gestion des Stocks - Logique Métier
 - [ ] Développer la logique de gestion des stocks (entrées, sorties, mise à jour automatique des quantités)

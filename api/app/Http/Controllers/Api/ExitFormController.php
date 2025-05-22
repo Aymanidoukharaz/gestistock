@@ -3,85 +3,67 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ExitFormRequest;
+use App\Http\Resources\ApiResponse;
+use App\Http\Resources\ExitFormCollection;
+use App\Http\Resources\ExitFormResource;
 use App\Models\ExitForm;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ExitFormController extends Controller
 {
     /**
      * Display a listing of the resource.
-     */
-    public function index()
+     */    public function index()
     {
-        $exits = ExitForm::paginate(10);
-        return response()->json($exits);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'reference' => 'required|string|max:255|unique:exit_forms,reference',
-            'date' => 'required|date',
-            'destination' => 'required|string|max:255',
-            'status' => 'required|string',
-            'user_id' => 'required|exists:users,id',
+        $exits = ExitForm::with(['user', 'exitItems', 'exitItems.product'])->paginate(10);
+        return (new ExitFormCollection($exits))->additional([
+            'success' => true,
+            'message' => 'Liste des bons de sortie récupérée avec succès'
         ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        $exit = ExitForm::create($request->all());
-        return response()->json($exit, 201);
+    }/**
+     * Store a newly created resource in storage.
+     */    public function store(ExitFormRequest $request)
+    {
+        // La validation est déjà gérée par la classe ExitFormRequest
+        $exit = ExitForm::create($request->validated());
+        $exit->load(['user', 'exitItems', 'exitItems.product']);
+        return ApiResponse::success(new ExitFormResource($exit), 'Bon de sortie créé avec succès', 201);
     }
 
     /**
      * Display the specified resource.
-     */
-    public function show(string $id)
+     */    public function show(string $id)
     {
-        $exit = ExitForm::find($id);
+        $exit = ExitForm::with(['user', 'exitItems', 'exitItems.product'])->find($id);
         if (!$exit) {
-            return response()->json(['message' => 'Bon de sortie non trouvé'], 404);
+            return ApiResponse::notFound('Bon de sortie non trouvé');
         }
-        return response()->json($exit);
-    }
-
-    /**
+        return ApiResponse::success(new ExitFormResource($exit), 'Bon de sortie récupéré avec succès');
+    }/**
      * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+     */    public function update(ExitFormRequest $request, string $id)
     {
         $exit = ExitForm::find($id);
         if (!$exit) {
-            return response()->json(['message' => 'Bon de sortie non trouvé'], 404);
+            return ApiResponse::notFound('Bon de sortie non trouvé');
         }
-        $validator = Validator::make($request->all(), [
-            'reference' => 'required|string|max:255|unique:exit_forms,reference,' . $id,
-            'date' => 'required|date',
-            'destination' => 'required|string|max:255',
-            'status' => 'required|string',
-            'user_id' => 'required|exists:users,id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-        $exit->update($request->all());
-        return response()->json($exit);
+        
+        // La validation est déjà gérée par la classe ExitFormRequest
+        $exit->update($request->validated());
+        $exit->load(['user', 'exitItems', 'exitItems.product']);
+        return ApiResponse::success(new ExitFormResource($exit), 'Bon de sortie mis à jour avec succès');
     }
 
     /**
      * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+     */    public function destroy(string $id)
     {
         $exit = ExitForm::find($id);
         if (!$exit) {
-            return response()->json(['message' => 'Bon de sortie non trouvé'], 404);
+            return ApiResponse::notFound('Bon de sortie non trouvé');
         }
         $exit->delete();
-        return response()->json(['message' => 'Bon de sortie supprimé avec succès']);
+        return ApiResponse::success(null, 'Bon de sortie supprimé avec succès');
     }
 }

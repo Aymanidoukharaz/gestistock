@@ -44,9 +44,7 @@ class ExitForm extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
+    }    /**
      * Relation avec les items du bon de sortie.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -54,5 +52,15 @@ class ExitForm extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ExitItem::class);
+    }
+    
+    /**
+     * Alias pour la relation items pour maintenir la cohérence avec le nom utilisé dans le contrôleur.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function exitItems(): HasMany
+    {
+        return $this->items();
     }
 }
