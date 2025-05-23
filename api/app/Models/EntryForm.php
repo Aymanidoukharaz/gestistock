@@ -51,11 +51,12 @@ class EntryForm extends Model
      * Relation avec l'utilisateur.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user(): BelongsTo
+     */    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }    /**
+    }
+    
+    /**
      * Relation avec les items du bon d'entrée.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -73,5 +74,15 @@ class EntryForm extends Model
     public function entryItems(): HasMany
     {
         return $this->items();
+    }
+    
+    /**
+     * Relation avec l'historique du bon d'entrée.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function histories(): HasMany
+    {
+        return $this->hasMany(EntryFormHistory::class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class EntryFormRequest extends FormRequest
@@ -19,18 +20,31 @@ class EntryFormRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
-     */
-    public function rules(): array
+     */    public function rules(): array
     {
         $entryFormId = $this->route('entry_form');
           return [
             'reference' => 'required|string|max:255|unique:entry_forms,reference' . ($entryFormId ? ',' . $entryFormId : ''),
-            'date' => 'required|date',
+            'date' => [
+                'required',                'date',
+                function ($attribute, $value, $fail) {
+                    if (Carbon::parse($value)->isAfter(Carbon::now())) {
+                        $fail('La date du bon d\'entrée ne peut pas être dans le futur.');
+                    }
+                },
+            ],
             'supplier_id' => 'required|exists:suppliers,id',
-            'notes' => 'nullable|string',
-            'status' => 'required|string|in:draft,pending,completed',
-            'total' => 'required|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+            'status' => 'required|string|in:draft,pending,completed,cancelled',
+            'total' => 'nullable|numeric|min:0',
             'user_id' => 'required|exists:users,id',
+            'items' => 'required_unless:status,cancelled|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0.01',
+            'items.*.total' => 'nullable|numeric|min:0',
+            'cancel_reason' => 'nullable|string|max:500|required_if:status,cancelled',
+            'validation_note' => 'nullable|string|max:500',
         ];
     }
 

@@ -40,11 +40,12 @@ class ExitForm extends Model
      * Relation avec l'utilisateur.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function user(): BelongsTo
+     */    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }    /**
+    }
+    
+    /**
      * Relation avec les items du bon de sortie.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

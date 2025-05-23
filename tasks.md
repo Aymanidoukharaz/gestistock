@@ -38,12 +38,12 @@
 - [x] Documentation du système d'autorisation et des rôles
 
 ## Phase 10: Gestion des Stocks - Logique Métier
-- [ ] Développer la logique de gestion des stocks (entrées, sorties, mise à jour automatique des quantités)
-- [ ] Test complet du comportement du stock lors des entrées et sorties
+- [x] Développer la logique de gestion des stocks (entrées, sorties, mise à jour automatique des quantités)
+- [x] Test complet du comportement du stock lors des entrées et sorties
 
 ## Phase 11: Bons d'Entrée - Logique Métier
-- [ ] Développer la logique spécifique pour les bons d'entrée (création, validation, impact sur le stock)
-- [ ] Test du processus complet de création et validation des bons d'entrée
+- [x] Développer la logique spécifique pour les bons d'entrée (création, validation, impact sur le stock)
+- [x] Test du processus complet de création et validation des bons d'entrée
 
 ## Phase 12: Bons de Sortie - Logique Métier
 - [ ] Développer la logique spécifique pour les bons de sortie (création, validation, impact sur le stock)

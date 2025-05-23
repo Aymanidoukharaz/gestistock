@@ -19,8 +19,7 @@ class ExitFormRequest extends FormRequest
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
-     */
-    public function rules(): array
+     */    public function rules(): array
     {
         $exitFormId = $this->route('exit_form');
           return [
@@ -31,6 +30,9 @@ class ExitFormRequest extends FormRequest
             'notes' => 'nullable|string',
             'status' => 'required|string|in:draft,pending,completed',
             'user_id' => 'required|exists:users,id',
+            'items' => 'nullable|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
         ];
     }
 
