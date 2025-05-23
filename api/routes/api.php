@@ -108,24 +108,31 @@ Route::middleware('auth:api')->group(function () {
     // Rapports sur les bons d'entrée
     Route::get('reports/entries/by-period', [EntryFormController::class, 'reportByPeriod'])->middleware('role:admin,magasinier');
     Route::get('reports/entries/by-supplier', [EntryFormController::class, 'reportBySupplier'])->middleware('role:admin,magasinier');
+    
+    // Routes pour les rapports des bons de sortie
+    Route::get('reports/exits/by-period', [ExitFormController::class, 'reportByPeriod'])->middleware('role:admin,magasinier');
+    Route::get('reports/exits/by-destination', [ExitFormController::class, 'reportByDestination'])->middleware('role:admin,magasinier');
+    
+    // Routes pour les rapports des bons d'entrée
+    Route::get('reports/entries/by-period', [EntryFormController::class, 'reportByPeriod'])->middleware('role:admin,magasinier');
+    Route::get('reports/entries/by-supplier', [EntryFormController::class, 'reportBySupplier'])->middleware('role:admin,magasinier');
     Route::get('reports/entries/by-product', [EntryFormController::class, 'reportByProduct'])->middleware('role:admin,magasinier');
     Route::post('entry-forms/{id}/validate', [EntryFormController::class, 'validate'])->middleware('role:admin,magasinier');
     Route::post('entry-forms/{id}/cancel', [EntryFormController::class, 'cancel'])->middleware('role:admin');
     Route::get('entry-forms/{id}/history', [EntryFormController::class, 'history'])->middleware('role:admin,magasinier');
     Route::post('entry-forms/check-duplicates', [EntryFormController::class, 'checkDuplicates'])->middleware('role:admin,magasinier');
     Route::get('entry-forms/{id}/debug', [EntryFormController::class, 'debug'])->middleware('role:admin,magasinier');
-    
-    // Gestion des bons de sortie
+      // Gestion des bons de sortie
     Route::post('exit-forms', [ExitFormController::class, 'store'])->middleware('role:admin,magasinier');
     Route::put('exit-forms/{exitForm}', [ExitFormController::class, 'update'])->middleware('role:admin');
     Route::delete('exit-forms/{exitForm}', [ExitFormController::class, 'destroy'])->middleware('role:admin');
     Route::post('exit-forms/{id}/validate', [ExitFormController::class, 'validate'])->middleware('role:admin,magasinier');
+    Route::post('exit-forms/{id}/cancel', [ExitFormController::class, 'cancel'])->middleware('role:admin');
+    Route::get('exit-forms/{id}/history', [ExitFormController::class, 'history'])->middleware('role:admin,magasinier');
+    Route::post('exit-forms/check-duplicates', [ExitFormController::class, 'checkDuplicates'])->middleware('role:admin,magasinier');
     
     // Routes pour les rapports des bons d'entrée
     Route::get('reports/entries/by-period', [EntryFormController::class, 'reportByPeriod'])->middleware('role:admin,magasinier');
     Route::get('reports/entries/by-supplier', [EntryFormController::class, 'reportBySupplier'])->middleware('role:admin,magasinier');
     Route::get('reports/entries/by-product', [EntryFormController::class, 'reportByProduct'])->middleware('role:admin,magasinier');
 });
-
-// Ajoute ici les routes spécifiques si besoin
-// Exemple : Route::get('products/low-stock', [ProductController::class, 'lowStock']);

@@ -46,8 +46,8 @@
 - [x] Test du processus complet de création et validation des bons d'entrée
 
 ## Phase 12: Bons de Sortie - Logique Métier
-- [ ] Développer la logique spécifique pour les bons de sortie (création, validation, impact sur le stock)
-- [ ] Test du processus complet de création et validation des bons de sortie
+- [x] Développer la logique spécifique pour les bons de sortie (création, validation, impact sur le stock)
+- [x] Test du processus complet de création et validation des bons de sortie
 
 ## Phase 13: Rapports d'Inventaire
 - [ ] Créer les endpoints pour les rapports d'inventaire (inventaire actuel, mouvements, valorisation)

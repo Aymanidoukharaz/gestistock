@@ -142,22 +142,24 @@ class ExitFormController extends Controller
         }
         $exit->delete();
         return ApiResponse::success(null, 'Bon de sortie supprimé avec succès');
-    }
-
-    /**
+    }    /**
      * Valider un bon de sortie et mettre à jour le stock.
      *
      * @param string $id Identifiant du bon de sortie.
+     * @param Request $request Requête contenant une note optionnelle
      * @return \Illuminate\Http\JsonResponse
      */
-    public function validate(string $id)
+    public function validate(string $id, Request $request = null)
     {
         try {
             $exit = ExitForm::with(['user', 'exitItems', 'exitItems.product'])->find($id);
             if (!$exit) {
                 return ApiResponse::notFound('Bon de sortie non trouvé');
             }
-            $validatedExit = $this->exitService->validate($exit);
+            
+            $validationNote = $request ? $request->input('validation_note') : null;
+            $validatedExit = $this->exitService->validate($exit, $validationNote);
+            
             return ApiResponse::success(
                 new ExitFormResource($validatedExit), 
                 'Bon de sortie validé avec succès'
@@ -165,5 +167,112 @@ class ExitFormController extends Controller
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage(), [], 422);
         }
+    }
+
+    /**
+     * Annuler un bon de sortie et ajuster le stock si nécessaire.
+     *
+     * @param string $id Identifiant du bon de sortie.
+     * @param Request $request Requête contenant une raison d'annulation optionnelle
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cancel(string $id, Request $request)
+    {
+        try {
+            $exit = ExitForm::with(['user', 'exitItems', 'exitItems.product'])->find($id);
+            if (!$exit) {
+                return ApiResponse::notFound('Bon de sortie non trouvé');
+            }
+            
+            $reason = $request->input('reason');
+            $cancelledExit = $this->exitService->cancel($exit, $reason);
+            
+            return ApiResponse::success(
+                new ExitFormResource($cancelledExit), 
+                'Bon de sortie annulé avec succès'
+            );
+        } catch (Exception $e) {
+            return ApiResponse::error($e->getMessage(), [], 422);
+        }
+    }
+
+    /**
+     * Récupérer l'historique des modifications d'un bon de sortie.
+     *
+     * @param string $id Identifiant du bon de sortie.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function history(string $id)
+    {
+        $exit = ExitForm::find($id);
+        if (!$exit) {
+            return ApiResponse::notFound('Bon de sortie non trouvé');
+        }
+        
+        $history = $exit->histories()->with('user')->orderBy('created_at', 'desc')->get();
+        
+        return ApiResponse::success([
+            'exit_form' => new ExitFormResource($exit),
+            'history' => $history
+        ], 'Historique des modifications récupéré avec succès');
+    }
+
+    /**
+     * Vérifier les doublons potentiels pour un bon de sortie.
+     *
+     * @param Request $request Requête contenant les données à vérifier.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkDuplicates(Request $request)
+    {
+        $data = $request->all();
+        $duplicates = $this->exitService->detectDuplicates($data);
+        
+        return ApiResponse::success([
+            'has_duplicates' => $duplicates->isNotEmpty(),
+            'duplicates' => $duplicates->isEmpty() ? [] : ExitFormResource::collection($duplicates)
+        ], 'Vérification des doublons effectuée avec succès');
+    }
+
+    /**
+     * Générer un rapport des sorties par période.
+     *
+     * @param Request $request Requête contenant les dates de début et de fin.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reportByPeriod(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date|date_format:Y-m-d',
+            'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date'
+        ]);
+        
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        
+        $report = $this->exitService->getExitsByPeriod($startDate, $endDate);
+        
+        return ApiResponse::success($report, 'Rapport des sorties généré avec succès');
+    }
+
+    /**
+     * Générer un rapport des sorties par destination.
+     *
+     * @param Request $request Requête contenant les dates de début et de fin optionnelles.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reportByDestination(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'nullable|date|date_format:Y-m-d',
+            'end_date' => 'nullable|date|date_format:Y-m-d|after_or_equal:start_date'
+        ]);
+        
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        
+        $report = $this->exitService->getExitsByDestination($startDate, $endDate);
+        
+        return ApiResponse::success($report, 'Rapport des sorties par destination généré avec succès');
     }
 }

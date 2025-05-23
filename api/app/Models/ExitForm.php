@@ -64,4 +64,14 @@ class ExitForm extends Model
     {
         return $this->items();
     }
+    
+    /**
+     * Relation avec l'historique du bon de sortie.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function histories(): HasMany
+    {
+        return $this->hasMany(ExitFormHistory::class);
+    }
 }
