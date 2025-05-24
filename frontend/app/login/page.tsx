@@ -37,33 +37,22 @@ export default function LoginPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log("[LOGIN] Form submitted with values:", { email: values.email, password: "***" })
     setIsLoading(true)
     setError("")
 
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Mock credentials check
-      if (
-        (values.email === "admin@gestistock.com" && values.password === "admin123") ||
-        (values.email === "magasinier@gestistock.com" && values.password === "maga123")
-      ) {
-        const role = values.email.startsWith("admin") ? "admin" : "magasinier"
-        login({
-          id: role === "admin" ? "1" : "2",
-          name: role === "admin" ? "Admin User" : "Magasinier User",
-          email: values.email,
-          role,
-        })
-        router.push("/dashboard")
-      } else {
-        setError("Email ou mot de passe incorrect.")
-      }
-    } catch (error) {
-      setError("Une erreur est survenue. Veuillez réessayer.")
+      console.log("[LOGIN] Calling login function...")
+      await login(values.email, values.password)
+      console.log("[LOGIN] Login successful, redirecting to dashboard...")
+      router.push("/dashboard")
+    } catch (error: any) {
+      console.error("[LOGIN] Login failed:", error)
+      const errorMessage = error?.response?.data?.message || "Email ou mot de passe incorrect."
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
+      console.log("[LOGIN] Login process completed")
     }
   }
 

@@ -1,7 +1,7 @@
 "use client"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Supplier } from "@/types/supplier"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { useEffect, useState } from "react"
 import type { Product } from "@/types/product"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -16,7 +16,7 @@ interface SupplierProductsDialogProps {
 }
 
 export function SupplierProductsDialog({ open, onOpenChange, supplier }: SupplierProductsDialogProps) {
-  const { products } = useMockData()
+  const { products, isLoadingProducts } = useApiData()
   const [searchTerm, setSearchTerm] = useState("")
   const [supplierProducts, setSupplierProducts] = useState<Product[]>([])
 

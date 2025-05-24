@@ -13,6 +13,23 @@ class SupplierSeeder extends Seeder
      */
     public function run(): void
     {
+        // Récupérer les fournisseurs existants
+        $existingSuppliers = Supplier::all();
+        
+        if ($existingSuppliers->isEmpty()) {
+            // Si aucun fournisseur n'existe, créer les fournisseurs par défaut
+            $this->createDefaultSuppliers();
+        } else {
+            // Sinon, afficher les fournisseurs existants
+            $this->displayExistingSuppliers($existingSuppliers);
+        }
+    }
+    
+    /**
+     * Créer les fournisseurs par défaut
+     */
+    private function createDefaultSuppliers(): void
+    {
         $suppliers = [
             [
                 'name' => 'TechSupply Inc.',
@@ -53,6 +70,19 @@ class SupplierSeeder extends Seeder
 
         foreach ($suppliers as $supplier) {
             Supplier::create($supplier);
+        }
+        
+        echo "Fournisseurs par défaut créés avec succès.\n";
+    }
+    
+    /**
+     * Afficher les fournisseurs existants
+     */
+    private function displayExistingSuppliers($suppliers): void
+    {
+        echo "Utilisation des fournisseurs existants dans la base de données:\n";
+        foreach ($suppliers as $supplier) {
+            echo "- {$supplier->name} ({$supplier->email})\n";
         }
     }
 }

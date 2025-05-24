@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertTriangle, ArrowDown, ArrowUp, Download, History, Search } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
+import { useAuth } from "@/hooks/use-auth"
 import { StockMovementDialog } from "./stock-movement-dialog"
 import type { Product } from "@/types/product"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +17,8 @@ import { StockHistoryDialog } from "./stock-history-dialog"
 import { Progress } from "@/components/ui/progress"
 
 export function StocksContent() {
-  const { products, categories, addStockMovement } = useMockData()
+  const { products, categories, addStockMovement, isLoadingProducts, isLoadingCategories } = useApiData()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
@@ -52,7 +54,8 @@ export function StocksContent() {
 
     // Apply category filter
     if (categoryFilter !== "all") {
-      result = result.filter((product) => product.category === categoryFilter)
+      // Ensure product.category exists and has an id before filtering
+      result = result.filter((product) => product.category && String(product.category.id) === categoryFilter)
     }
 
     setFilteredProducts(result)
@@ -78,11 +81,18 @@ export function StocksContent() {
   }
 
   const handleMovementSave = (productId: string, quantity: number, type: "entry" | "exit", reason: string) => {
+    if (!user) {
+      // Handle case where user is not available, perhaps show an error or redirect to login
+      console.error("User not authenticated")
+      return
+    }
     addStockMovement({
       productId,
       quantity,
       type,
       reason,
+      date: new Date().toISOString(),
+      user_id: user.id,
     })
     setEntryDialogOpen(false)
     setExitDialogOpen(false)
@@ -103,10 +113,6 @@ export function StocksContent() {
           <h2 className="text-2xl font-bold tracking-tight">Gestion des stocks</h2>
           <p className="text-muted-foreground">Suivez et gérez les niveaux de stock</p>
         </div>
-        <Button variant="outline">
-          <Download className="mr-2 h-4 w-4" />
-          Exporter
-        </Button>
       </div>
 
       <Card>
@@ -133,8 +139,9 @@ export function StocksContent() {
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  // Use category.id as the value and category.name for display
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -166,33 +173,34 @@ export function StocksContent() {
                       <TableCell className="font-medium">{product.reference}</TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{product.category}</Badge>
+                        {/* Display category.name; ensure category object and name exist */}
+                        <Badge variant="outline">{product.category?.name || "N/A"}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <Progress
-                            value={(product.quantity / (product.minStock * 3)) * 100}
+                            value={(product.quantity / (product.min_stock * 3)) * 100} // Use min_stock
                             className="h-2"
                             indicatorClassName={
-                              product.quantity < product.minStock
+                              product.quantity < product.min_stock // Use min_stock
                                 ? "bg-destructive"
-                                : product.quantity < product.minStock * 2
+                                : product.quantity < product.min_stock * 2 // Use min_stock
                                   ? "bg-yellow-500"
                                   : "bg-green-500"
                             }
                           />
                           <div className="flex items-center justify-between text-xs">
-                            <span>Min: {product.minStock}</span>
-                            <span>Max: {product.minStock * 3}</span>
+                            <span>Min: {product.min_stock}</span> {/* Use min_stock */}
+                            <span>Max: {product.min_stock * 3}</span> {/* Use min_stock */}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {product.quantity < product.minStock && (
+                          {product.quantity < product.min_stock && ( // Use min_stock
                             <AlertTriangle className="h-4 w-4 text-destructive" />
                           )}
-                          <span className={product.quantity < product.minStock ? "text-destructive" : ""}>
+                          <span className={product.quantity < product.min_stock ? "text-destructive" : ""}> {/* Use min_stock */}
                             {product.quantity}
                           </span>
                         </div>

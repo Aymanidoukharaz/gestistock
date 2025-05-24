@@ -14,6 +14,23 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        // Récupérer les produits existants
+        $existingProducts = Product::all();
+        
+        if ($existingProducts->isEmpty()) {
+            // Si aucun produit n'existe, créer les produits par défaut
+            $this->createDefaultProducts();
+        } else {
+            // Sinon, afficher les produits existants
+            $this->displayExistingProducts($existingProducts);
+        }
+    }
+    
+    /**
+     * Créer les produits par défaut
+     */
+    private function createDefaultProducts(): void
+    {
         // Récupérer les IDs des catégories
         $electroniqueId = Category::where('name', 'Électronique')->first()->id;
         $bureauId = Category::where('name', 'Fournitures de bureau')->first()->id;
@@ -117,6 +134,27 @@ class ProductSeeder extends Seeder
 
         foreach ($products as $product) {
             Product::create($product);
+        }
+        
+        echo "Produits par défaut créés avec succès.\n";
+    }
+    
+    /**
+     * Afficher les produits existants
+     */
+    private function displayExistingProducts($products): void
+    {
+        echo "Utilisation des produits existants dans la base de données:\n";
+        echo "Nombre total de produits: " . $products->count() . "\n";
+        
+        // Afficher quelques produits à titre d'exemple (pour éviter une liste trop longue)
+        $sampleProducts = $products->take(5);
+        foreach ($sampleProducts as $product) {
+            echo "- {$product->name} (Réf: {$product->reference}), Stock: {$product->quantity}\n";
+        }
+        
+        if ($products->count() > 5) {
+            echo "... et " . ($products->count() - 5) . " autres produits\n";
         }
     }
 }

@@ -10,8 +10,9 @@ import type { EntryForm } from "@/types/entry-form"
 import type { ExitForm } from "@/types/exit-form"
 import { createContext, useContext, useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
+import { useAuth } from "./use-auth"
 
-// Initial mock data
+// Empty initial data structures
 const initialProducts: Product[] = [
   {
     id: "p1",

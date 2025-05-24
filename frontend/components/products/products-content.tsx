@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { AlertTriangle, Download, Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { ProductDialog } from "./product-dialog"
 import type { Product } from "@/types/product"
 import { Badge } from "@/components/ui/badge"
@@ -22,8 +22,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination } from "@/components/ui/pagination"
 
 export function ProductsContent() {
-  const { products, categories, addProduct, updateProduct, deleteProduct } = useMockData()
-  const [isLoading, setIsLoading] = useState(true)
+  const { 
+    products, 
+    categories, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct,
+    isLoadingProducts,
+    isLoadingCategories
+  } = useApiData()
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
@@ -32,15 +39,6 @@ export function ProductsContent() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
 
   const itemsPerPage = 10
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     let result = [...products]
@@ -56,7 +54,7 @@ export function ProductsContent() {
 
     // Apply category filter
     if (categoryFilter !== "all") {
-      result = result.filter((product) => product.category === categoryFilter)
+      result = result.filter((product) => product.category?.id === Number(categoryFilter))
     }
 
     setFilteredProducts(result)
@@ -91,7 +89,7 @@ export function ProductsContent() {
     setDialogOpen(false)
   }
 
-  if (isLoading) {
+  if (isLoadingProducts || isLoadingCategories) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
@@ -110,10 +108,6 @@ export function ProductsContent() {
           <Button onClick={handleAddProduct}>
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un produit
-          </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exporter
           </Button>
         </div>
       </div>
@@ -142,8 +136,8 @@ export function ProductsContent() {
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
                 {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                  <SelectItem key={category.id} value={String(category.id)}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -175,20 +169,20 @@ export function ProductsContent() {
                       <TableCell className="font-medium">{product.reference}</TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{product.category}</Badge>
+                        <Badge variant="outline">{product.category?.name || "N/A"}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {product.price.toLocaleString("fr-FR", {
+                        {typeof product.price === 'number' ? product.price.toLocaleString("fr-FR", {
                           style: "currency",
                           currency: "EUR",
-                        })}
+                        }) : "0,00 €"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {product.quantity < product.minStock && (
+                          {product.quantity < product.min_stock && (
                             <AlertTriangle className="h-4 w-4 text-destructive" />
                           )}
-                          <span className={product.quantity < product.minStock ? "text-destructive" : ""}>
+                          <span className={product.quantity < product.min_stock ? "text-destructive" : ""}>
                             {product.quantity}
                           </span>
                         </div>

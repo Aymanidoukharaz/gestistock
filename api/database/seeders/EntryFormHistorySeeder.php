@@ -10,15 +10,36 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class EntryFormHistorySeeder extends Seeder
-{
-    /**
+{    /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        // Vérifier s'il existe déjà des historiques de bons d'entrée
+        $existingHistory = EntryFormHistory::all();
+        
+        if ($existingHistory->isEmpty()) {
+            // Si aucun historique n'existe, créer les historiques par défaut
+            $this->createDefaultEntryFormHistory();
+        } else {
+            // Sinon, afficher les historiques existants
+            $this->displayExistingEntryFormHistory($existingHistory);
+        }
+    }
+    
+    /**
+     * Créer les historiques de bons d'entrée par défaut
+     */
+    private function createDefaultEntryFormHistory(): void
+    {
         // Récupération des bons d'entrée existants
         $entryForms = EntryForm::all();
         $admin = User::where('role', 'admin')->first();
+
+        if ($entryForms->isEmpty() || !$admin) {
+            echo "Aucun bon d'entrée ou utilisateur admin trouvé. Historiques non créés.\n";
+            return;
+        }
 
         foreach ($entryForms as $entryForm) {
             // Créer un historique de création
@@ -57,7 +78,8 @@ class EntryFormHistorySeeder extends Seeder
                     'updated_at' => Carbon::parse($entryForm->updated_at),
                 ]);
             }
-              // Si le bon est annulé, créer un historique d'annulation
+            
+            // Si le bon est annulé, créer un historique d'annulation
             if ($entryForm->status === 'cancelled') {
                 $previousStatus = rand(0, 1) ? 'draft' : 'completed';
                 EntryFormHistory::create([
@@ -70,6 +92,27 @@ class EntryFormHistorySeeder extends Seeder
                     'created_at' => Carbon::parse($entryForm->updated_at),
                     'updated_at' => Carbon::parse($entryForm->updated_at),
                 ]);
+            }
+        }
+        
+        echo "Historiques de bons d'entrée par défaut créés avec succès.\n";
+    }
+    
+    /**
+     * Afficher les historiques de bons d'entrée existants
+     */
+    private function displayExistingEntryFormHistory($histories): void
+    {
+        echo "Utilisation des historiques de bons d'entrée existants dans la base de données:\n";
+        echo "Nombre total d'historiques: " . $histories->count() . "\n";
+        
+        // Regrouper par bon d'entrée
+        $historiesByForm = $histories->groupBy('entry_form_id');
+        echo "Répartition par bon d'entrée:\n";
+        foreach ($historiesByForm as $formId => $formHistories) {
+            $entryForm = EntryForm::find($formId);
+            if ($entryForm) {
+                echo "- Bon {$entryForm->reference}: {$formHistories->count()} entrées d'historique\n";
             }
         }
     }

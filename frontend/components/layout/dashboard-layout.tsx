@@ -13,8 +13,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
+  console.log("[DASHBOARD] Current state - user:", !!user, "isLoading:", isLoading, "pathname:", pathname)
+
   useEffect(() => {
+    console.log("[DASHBOARD] useEffect - user:", !!user, "isLoading:", isLoading, "pathname:", pathname)
     if (!isLoading && !user && !pathname.includes("/login")) {
+      console.log("[DASHBOARD] No user found, redirecting to login")
       router.push("/login")
     }
   }, [user, isLoading, router, pathname])

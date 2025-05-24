@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Download, Edit, MoreHorizontal, Package, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import type { Supplier } from "@/types/supplier"
 import { Pagination } from "@/components/ui/pagination"
 import { SupplierDialog } from "./supplier-dialog"
 import { SupplierProductsDialog } from "./supplier-products-dialog"
 
 export function SuppliersContent() {
-  const { suppliers, deleteSupplier } = useMockData()
+  const { suppliers, deleteSupplier, isLoadingSuppliers } = useApiData()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -101,10 +101,6 @@ export function SuppliersContent() {
           <Button onClick={handleAddSupplier}>
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un fournisseur
-          </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exporter
           </Button>
         </div>
       </div>

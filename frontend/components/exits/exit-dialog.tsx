@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { Textarea } from "@/components/ui/textarea"
 import { X, Plus } from "lucide-react"
 import type { ExitForm, ExitItem } from "@/types/exit-form"
@@ -44,7 +44,7 @@ interface ExitDialogProps {
 }
 
 export function ExitDialog({ open, onOpenChange }: ExitDialogProps) {
-  const { products, addExitForm } = useMockData()
+  const { products, addExitForm, isLoadingProducts } = useApiData()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof exitFormSchema>>({

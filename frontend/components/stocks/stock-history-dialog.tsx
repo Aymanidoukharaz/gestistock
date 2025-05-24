@@ -1,7 +1,7 @@
 "use client"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Product } from "@/types/product"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { useEffect, useState } from "react"
 import { ArrowDown, ArrowUp } from "lucide-react"
 import type { StockMovement } from "@/types/stock-movement"
@@ -13,7 +13,7 @@ interface StockHistoryDialogProps {
 }
 
 export function StockHistoryDialog({ open, onOpenChange, product }: StockHistoryDialogProps) {
-  const { stockMovements } = useMockData()
+  const { stockMovements, isLoadingStockMovements } = useApiData()
   const [productMovements, setProductMovements] = useState<StockMovement[]>([])
 
   useEffect(() => {

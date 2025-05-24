@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import type { User } from "@/types/user"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
@@ -23,7 +23,7 @@ import { useAuth } from "@/hooks/use-auth"
 
 export function UsersContent() {
   const { user: loggedInUser } = useAuth()
-  const { users, deleteUser } = useMockData()
+  const { users, deleteUser, isLoadingUsers } = useApiData()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)

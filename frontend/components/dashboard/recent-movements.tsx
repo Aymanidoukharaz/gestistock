@@ -1,6 +1,6 @@
 "use client"
 
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { ArrowDown, ArrowUp } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -13,7 +13,7 @@ interface Movement {
 }
 
 export function RecentMovements() {
-  const { stockMovements, products } = useMockData()
+  const { stockMovements, products, isLoadingStockMovements, isLoadingProducts } = useApiData()
   const [recentMovements, setRecentMovements] = useState<Movement[]>([])
 
   useEffect(() => {

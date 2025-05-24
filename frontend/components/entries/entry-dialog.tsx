@@ -18,7 +18,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { Textarea } from "@/components/ui/textarea"
 import { X, Plus } from "lucide-react"
 import type { EntryForm, EntryItem } from "@/types/entry-form"
@@ -46,7 +46,7 @@ interface EntryDialogProps {
 }
 
 export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps) {
-  const { products, addEntryForm } = useMockData()
+  const { products, addEntryForm, isLoadingProducts } = useApiData()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof entryFormSchema>>({

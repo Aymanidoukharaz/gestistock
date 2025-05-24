@@ -18,7 +18,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 
 const supplierSchema = z.object({
   id: z.string().optional(),
@@ -36,7 +36,7 @@ interface SupplierDialogProps {
 }
 
 export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogProps) {
-  const { addSupplier, updateSupplier } = useMockData()
+  const { addSupplier, updateSupplier } = useApiData()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof supplierSchema>>({

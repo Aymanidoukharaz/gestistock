@@ -12,11 +12,27 @@ use App\Models\StockMovement;
 use Carbon\Carbon;
 
 class ExitFormSeeder extends Seeder
-{
-    /**
+{    /**
      * Run the database seeds.
      */
     public function run(): void
+    {
+        // Vérifier s'il existe déjà des bons de sortie
+        $existingExitForms = ExitForm::all();
+        
+        if ($existingExitForms->isEmpty()) {
+            // Si aucun bon de sortie n'existe, créer les bons de sortie par défaut
+            $this->createDefaultExitForms();
+        } else {
+            // Sinon, afficher les bons de sortie existants
+            $this->displayExistingExitForms($existingExitForms);
+        }
+    }
+    
+    /**
+     * Créer les bons de sortie par défaut
+     */
+    private function createDefaultExitForms(): void
     {
         // Récupération des données nécessaires
         $admin = User::where('email', 'admin@gestistock.com')->first();
@@ -102,6 +118,27 @@ class ExitFormSeeder extends Seeder
                 'date' => $exitForm2->date,
                 'user_id' => $magasinier->id,
             ]);
+        }
+        
+        echo "Bons de sortie par défaut créés avec succès.\n";
+    }
+    
+    /**
+     * Afficher les bons de sortie existants
+     */
+    private function displayExistingExitForms($exitForms): void
+    {
+        echo "Utilisation des bons de sortie existants dans la base de données:\n";
+        echo "Nombre total de bons de sortie: " . $exitForms->count() . "\n";
+        
+        // Afficher quelques bons à titre d'exemple (pour éviter une liste trop longue)
+        $sampleExitForms = $exitForms->take(3);
+        foreach ($sampleExitForms as $exitForm) {
+            echo "- Réf: {$exitForm->reference}, Date: {$exitForm->date->format('Y-m-d')}, Destination: {$exitForm->destination}, Statut: {$exitForm->status}\n";
+        }
+        
+        if ($exitForms->count() > 3) {
+            echo "... et " . ($exitForms->count() - 3) . " autres bons de sortie\n";
         }
     }
 }

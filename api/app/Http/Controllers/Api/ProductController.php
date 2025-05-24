@@ -72,4 +72,13 @@ class ProductController extends Controller
         $products = Product::with('category')->whereColumn('quantity', '<=', 'min_stock')->get();
         return ApiResponse::success(ProductResource::collection($products), 'Liste des produits en stock faible récupérée avec succès');
     }
+
+    /**
+     * Retourne toutes les catégories de produits.
+     */
+    public function categories()
+    {
+        $categories = \App\Models\Category::all();
+        return ApiResponse::success(\App\Http\Resources\CategoryResource::collection($categories), 'Liste des catégories de produits récupérée avec succès');
+    }
 }

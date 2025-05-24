@@ -1,11 +1,11 @@
 "use client"
 
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { useEffect, useState } from "react"
 import { Chart } from "@/components/ui/chart"
 
 export function StockMovementChart() {
-  const { stockMovements } = useMockData()
+  const { stockMovements, isLoadingStockMovements } = useApiData()
   const [chartData, setChartData] = useState<any[]>([])
 
   useEffect(() => {

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Download, Eye, MoreHorizontal, Plus, Printer, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { ExitDialog } from "./exit-dialog"
@@ -22,7 +22,7 @@ import { ExitDetailsDialog } from "./exit-details-dialog"
 import type { ExitForm } from "@/types/exit-form"
 
 export function ExitsContent() {
-  const { exitForms, deleteExitForm } = useMockData()
+  const { exitForms, deleteExitForm, isLoadingExitForms } = useApiData()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -105,10 +105,6 @@ export function ExitsContent() {
             <Plus className="mr-2 h-4 w-4" />
             Nouveau bon de sortie
           </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exporter
-          </Button>
         </div>
       </div>
 
@@ -153,7 +149,7 @@ export function ExitsContent() {
                   paginatedExits.map((exit) => (
                     <TableRow key={exit.id}>
                       <TableCell className="font-medium">{exit.reference}</TableCell>
-                      <TableCell>{new Date(exit.date).toLocaleDateString("fr-FR")}</TableCell>
+                      <TableCell>{(exit.date && !isNaN(new Date(exit.date).getTime())) ? new Date(exit.date).toLocaleDateString("fr-FR") : "N/A"}</TableCell>
                       <TableCell>{exit.destination}</TableCell>
                       <TableCell>
                         <Badge

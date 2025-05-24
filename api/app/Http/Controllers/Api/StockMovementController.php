@@ -8,7 +8,10 @@ use App\Http\Resources\ApiResponse;
 use App\Http\Resources\StockMovementCollection;
 use App\Http\Resources\StockMovementResource;
 use App\Models\StockMovement;
+use App\Models\Product; // Added
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // Added
+use Illuminate\Support\Facades\Log; // Added for logging errors
 
 class StockMovementController extends Controller
 {
@@ -25,10 +28,41 @@ class StockMovementController extends Controller
      * Store a newly created resource in storage.
      */    public function store(StockMovementRequest $request)
     {
-        // La validation est déjà gérée par la classe StockMovementRequest
-        $movement = StockMovement::create($request->validated());
-        $movement->load(['product', 'product.category', 'user']);
-        return ApiResponse::success(new StockMovementResource($movement), 'Mouvement de stock créé avec succès', 201);
+        $validatedData = $request->validated();
+
+        DB::beginTransaction();
+
+        try {
+            // 1. Create the StockMovement
+            $movement = StockMovement::create($validatedData);
+
+            // 2. Fetch the related Product
+            $product = Product::findOrFail($validatedData['product_id']);
+
+            // 3. Update Product quantity
+            if ($validatedData['type'] === 'entry') {
+                $product->quantity += $validatedData['quantity'];
+            } elseif ($validatedData['type'] === 'exit') {
+                // Ensure stock doesn't go negative if not allowed, or handle as per business rules
+                // For now, we'll assume it can go negative or this is handled by validation/frontend
+                $product->quantity -= $validatedData['quantity'];
+            }
+
+            // 4. Save the Product
+            $product->save();
+
+            // 5. Commit the transaction
+            DB::commit();
+
+            $movement->load(['product', 'product.category', 'user']);
+            return ApiResponse::success(new StockMovementResource($movement), 'Mouvement de stock créé et quantité produit mise à jour avec succès', 201);
+
+        } catch (\Exception $e) {
+            // 6. Rollback transaction on error
+            DB::rollBack();
+            Log::error("Error creating stock movement or updating product quantity: " . $e->getMessage());
+            return ApiResponse::error('Erreur lors de la création du mouvement de stock ou de la mise à jour de la quantité du produit: ' . $e->getMessage(), 500);
+        }
     }
 
     /**

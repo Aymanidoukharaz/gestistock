@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Download, Eye, MoreHorizontal, Plus, Printer, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { EntryDialog } from "./entry-dialog"
@@ -22,7 +22,7 @@ import { EntryDetailsDialog } from "./entry-details-dialog"
 import type { EntryForm } from "@/types/entry-form"
 
 export function EntriesContent() {
-  const { entryForms, suppliers, deleteEntryForm } = useMockData()
+  const { entryForms, suppliers, deleteEntryForm, isLoadingEntryForms, isLoadingSuppliers } = useApiData()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -56,12 +56,16 @@ export function EntriesContent() {
 
     // Sort by date (newest first)
     result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+console.log("[EntriesContent] entryForms length:", entryForms.length);
+console.log("[EntriesContent] searchTerm:", searchTerm);
+console.log("[EntriesContent] filteredEntries after search/sort:", result.length);
+setFilteredEntries(result)
+setCurrentPage(1)
+}, [entryForms, searchTerm])
 
-    setFilteredEntries(result)
-    setCurrentPage(1)
-  }, [entryForms, searchTerm])
-
-  const pageCount = Math.ceil(filteredEntries.length / itemsPerPage)
+const pageCount = Math.ceil(filteredEntries.length / itemsPerPage)
+console.log("[EntriesContent] itemsPerPage:", itemsPerPage);
+console.log("[EntriesContent] calculated pageCount:", pageCount);
   const paginatedEntries = filteredEntries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const handleAddEntry = () => {
@@ -105,10 +109,6 @@ export function EntriesContent() {
             <Plus className="mr-2 h-4 w-4" />
             Nouveau bon d'entrée
           </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exporter
-          </Button>
         </div>
       </div>
 
@@ -145,7 +145,7 @@ export function EntriesContent() {
               </TableHeader>
               <TableBody>
                 {paginatedEntries.length === 0 ? (
-                  <TableRow>
+                  <TableRow key="empty-entries-row">
                     <TableCell colSpan={6} className="h-24 text-center">
                       Aucun bon d'entrée trouvé.
                     </TableCell>
@@ -174,10 +174,12 @@ export function EntriesContent() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {entry.total.toLocaleString("fr-FR", {
-                          style: "currency",
-                          currency: "EUR",
-                        })}
+                        {typeof entry.total === 'number'
+                          ? entry.total.toLocaleString("fr-FR", {
+                              style: "currency",
+                              currency: "EUR",
+                            })
+                          : "0,00 €"}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>

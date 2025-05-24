@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { border-color: #4CAF50; background-color: #f4ffff; }
+        .error { border-color: #f44336; background-color: #fff4f4; }
+        .pending { border-color: #ff9800; background-color: #fff8f0; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .status { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Frontend-Backend Connection Test</h1>
+    
+    <div class="test-section pending" id="api-test">
+        <h3>📡 API Connectivity Test</h3>
+        <p>Testing connection to: <code>http://localhost:8000/api</code></p>
+        <button onclick="testApiConnection()">Test API Connection</button>
+        <div id="api-result"></div>
+    </div>
+
+    <div class="test-section pending" id="auth-test">
+        <h3>🔐 Authentication Test</h3>
+        <p>Testing login with admin credentials</p>
+        <button onclick="testAuthentication()">Test Login</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section pending" id="data-test">
+        <h3>📊 Data Fetch Test</h3>
+        <p>Testing authenticated data retrieval</p>
+        <button onclick="testDataFetch()" disabled id="data-btn">Test Data Fetch</button>
+        <div id="data-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let authToken = null;
+
+        async function testApiConnection() {
+            const section = document.getElementById('api-test');
+            const result = document.getElementById('api-result');
+            
+            try {
+                result.innerHTML = '<div class="status">Testing...</div>';
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'test@test.com',
+                        password: 'wrongpassword'
+                    })
+                });
+                
+                if (response.status === 422) {
+                    section.className = 'test-section success';
+                    result.innerHTML = `
+                        <div class="status">✅ API Connection Successful!</div>
+                        <p>API is responding correctly (422 validation error as expected)</p>
+                        <pre>Status: ${response.status} ${response.statusText}</pre>
+                    `;
+                } else {
+                    section.className = 'test-section success';
+                    result.innerHTML = `
+                        <div class="status">✅ API Connection Successful!</div>
+                        <pre>Status: ${response.status} ${response.statusText}</pre>
+                    `;
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                result.innerHTML = `
+                    <div class="status">❌ Connection Failed</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testAuthentication() {
+            const section = document.getElementById('auth-test');
+            const result = document.getElementById('auth-result');
+            
+            try {
+                result.innerHTML = '<div class="status">Testing login...</div>';
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@gestistock.com',
+                        password: 'password'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.data && data.data.access_token) {
+                    authToken = data.data.access_token;
+                    section.className = 'test-section success';
+                    result.innerHTML = `
+                        <div class="status">✅ Authentication Successful!</div>
+                        <p>Logged in as: <strong>${data.data.user.name}</strong></p>
+                        <p>Token received and stored for next test</p>
+                        <pre>Response: ${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    document.getElementById('data-btn').disabled = false;
+                } else {
+                    section.className = 'test-section error';
+                    result.innerHTML = `
+                        <div class="status">❌ Authentication Failed</div>
+                        <pre>Response: ${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                result.innerHTML = `
+                    <div class="status">❌ Authentication Error</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+            }
+        }
+
+        async function testDataFetch() {
+            const section = document.getElementById('data-test');
+            const result = document.getElementById('data-result');
+            
+            if (!authToken) {
+                result.innerHTML = '<div class="status">❌ No auth token available. Run authentication test first.</div>';
+                return;
+            }
+            
+            try {
+                result.innerHTML = '<div class="status">Testing data fetch...</div>';
+                
+                const response = await fetch(`${API_BASE}/auth/user`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    section.className = 'test-section success';
+                    result.innerHTML = `
+                        <div class="status">✅ Data Fetch Successful!</div>
+                        <p>Successfully retrieved authenticated user data</p>
+                        <pre>User Data: ${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    section.className = 'test-section error';
+                    result.innerHTML = `
+                        <div class="status">❌ Data Fetch Failed</div>
+                        <pre>Status: ${response.status}
+Response: ${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                section.className = 'test-section error';
+                result.innerHTML = `
+                    <div class="status">❌ Data Fetch Error</div>
+                    <pre>Error: ${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

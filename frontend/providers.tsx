@@ -4,13 +4,15 @@ import type React from "react"
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/hooks/use-auth"
-import { MockDataProvider } from "@/hooks/use-mock-data"
+import { ApiDataProvider } from "@/hooks/use-api-data"
+import { Toaster } from "sonner"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <AuthProvider>
-        <MockDataProvider>{children}</MockDataProvider>
+        <ApiDataProvider>{children}</ApiDataProvider>
+        <Toaster position="bottom-right" richColors />
       </AuthProvider>
     </ThemeProvider>
   )

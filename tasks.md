@@ -50,12 +50,12 @@
 - [x] Test du processus complet de création et validation des bons de sortie
 
 ## Phase 13: Rapports d'Inventaire
-- [ ] Créer les endpoints pour les rapports d'inventaire (inventaire actuel, mouvements, valorisation)
-- [ ] Test de la précision et de l'exactitude des données dans les rapports générés
+- [x] Créer les endpoints pour les rapports d'inventaire (inventaire actuel, mouvements, valorisation)
+- [x] Test de la précision et de l'exactitude des données dans les rapports générés
 
 ## Phase 14: Analyses et Dashboard
-- [ ] Développer les endpoints pour les données du tableau de bord et les analyses
-- [ ] Test de la pertinence et de l'exactitude des analyses fournies
+- [x] Développer les endpoints pour les données du tableau de bord et les analyses
+- [x] Test de la pertinence et de l'exactitude des analyses fournies
 
 ## Phase 15: Tests Unitaires et d'Intégration
 - [ ] Écrire des tests pour valider le fonctionnement de l'API

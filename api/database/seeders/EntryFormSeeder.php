@@ -13,11 +13,27 @@ use App\Models\StockMovement;
 use Carbon\Carbon;
 
 class EntryFormSeeder extends Seeder
-{
-    /**
+{    /**
      * Run the database seeds.
      */
     public function run(): void
+    {
+        // Vérifier s'il existe déjà des bons d'entrée
+        $existingEntryForms = EntryForm::all();
+        
+        if ($existingEntryForms->isEmpty()) {
+            // Si aucun bon d'entrée n'existe, créer les bons d'entrée par défaut
+            $this->createDefaultEntryForms();
+        } else {
+            // Sinon, afficher les bons d'entrée existants
+            $this->displayExistingEntryForms($existingEntryForms);
+        }
+    }
+    
+    /**
+     * Créer les bons d'entrée par défaut
+     */
+    private function createDefaultEntryForms(): void
     {
         // Récupération des données nécessaires
         $admin = User::where('email', 'admin@gestistock.com')->first();
@@ -120,8 +136,28 @@ class EntryFormSeeder extends Seeder
                 'user_id' => $admin->id,
             ]);
         }
-        
-        // Mise à jour du total du bon d'entrée
+          // Mise à jour du total du bon d'entrée
         $entryForm2->update(['total' => $total2]);
+        
+        echo "Bons d'entrée par défaut créés avec succès.\n";
+    }
+    
+    /**
+     * Afficher les bons d'entrée existants
+     */
+    private function displayExistingEntryForms($entryForms): void
+    {
+        echo "Utilisation des bons d'entrée existants dans la base de données:\n";
+        echo "Nombre total de bons d'entrée: " . $entryForms->count() . "\n";
+        
+        // Afficher quelques bons à titre d'exemple (pour éviter une liste trop longue)
+        $sampleEntryForms = $entryForms->take(3);
+        foreach ($sampleEntryForms as $entryForm) {
+            echo "- Réf: {$entryForm->reference}, Date: {$entryForm->date->format('Y-m-d')}, Fournisseur: {$entryForm->supplier->name}, Statut: {$entryForm->status}\n";
+        }
+        
+        if ($entryForms->count() > 3) {
+            echo "... et " . ($entryForms->count() - 3) . " autres bons d'entrée\n";
+        }
     }
 }

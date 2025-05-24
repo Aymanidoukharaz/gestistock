@@ -1,6 +1,6 @@
 "use client"
 
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { useEffect, useState } from "react"
 import { Chart } from "@/components/ui/chart"
 import { useTheme } from "next-themes"
@@ -20,7 +20,7 @@ const categoryColors = [
 ]
 
 export function ProductCategoryChart() {
-  const { products } = useMockData()
+  const { products, isLoadingProducts } = useApiData()
   const [chartData, setChartData] = useState<any[]>([])
   const { theme } = useTheme()
   const [colors, setColors] = useState<string[]>(categoryColors)

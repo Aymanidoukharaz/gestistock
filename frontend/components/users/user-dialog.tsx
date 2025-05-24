@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
@@ -39,7 +39,7 @@ interface UserDialogProps {
 }
 
 export function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
-  const { addUser, updateUser } = useMockData()
+  const { addUser, updateUser } = useApiData()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof userSchema>>({

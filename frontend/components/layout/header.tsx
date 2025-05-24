@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
 import { Menu, Bell, Search, Sun, Moon } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { useTheme } from "next-themes"
 import { GestistockLogo } from "@/components/gestistock-logo"
@@ -61,6 +61,8 @@ export function Header() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0">
+            <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
+            <SheetDescription className="sr-only">Menu de navigation principal pour mobile</SheetDescription>
             <MobileSidebar />
           </SheetContent>
         </Sheet>

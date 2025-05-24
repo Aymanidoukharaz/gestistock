@@ -13,6 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import type { Category } from "@/types/category"
 import type { Product } from "@/types/product"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -25,17 +26,17 @@ const productSchema = z.object({
   reference: z.string().min(1, "La référence est requise"),
   name: z.string().min(1, "Le nom est requis"),
   description: z.string().optional(),
-  category: z.string().min(1, "La catégorie est requise"),
+  category_id: z.coerce.number().min(1, "La catégorie est requise"),
   price: z.coerce.number().positive("Le prix doit être positif"),
   quantity: z.coerce.number().int("La quantité doit être un nombre entier"),
-  minStock: z.coerce.number().int("Le stock minimum doit être un nombre entier"),
+  min_stock: z.coerce.number().int("Le stock minimum doit être un nombre entier"),
 })
 
 interface ProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   product: Product | null
-  categories: string[]
+  categories: Category[]
   onSave: (product: Product) => void
 }
 
@@ -43,56 +44,79 @@ export function ProductDialog({ open, onOpenChange, product, categories, onSave 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      id: "",
+      id: undefined, // Use undefined for optional string
       reference: "",
       name: "",
       description: "",
-      category: "",
+      category_id: 0,
       price: 0,
       quantity: 0,
-      minStock: 0,
+      min_stock: 0,
     },
   })
 
   useEffect(() => {
     if (product) {
       form.reset({
-        id: product.id,
+        id: String(product.id), // Ensure id is a string
         reference: product.reference,
         name: product.name,
         description: product.description || "",
-        category: product.category,
+        category_id: product.category?.id || 0,
         price: product.price,
         quantity: product.quantity,
-        minStock: product.minStock,
+        min_stock: product.min_stock,
       })
     } else {
       form.reset({
-        id: "",
+        id: undefined, // Use undefined for optional string
         reference: "",
         name: "",
         description: "",
-        category: "",
+        category_id: 0,
         price: 0,
         quantity: 0,
-        minStock: 0,
+        min_stock: 0,
       })
     }
   }, [product, form])
 
   function onSubmit(values: z.infer<typeof productSchema>) {
+    console.log("[ProductDialog] onSubmit triggered with values:", values);
+    // The console.log for form.formState.errors here is generally not needed if zodResolver is working,
+    // as it should prevent onSubmit from being called if there are validation errors.
+    // console.log("[ProductDialog] Form errors at onSubmit:", form.formState.errors); 
+
+    const selectedCategory = categories.find(cat => cat.id === values.category_id);
+
+    // The productSchema ensures that values.category_id is a number and >= 1 if validation has passed.
+    // If selectedCategory is not found at this point, it implies an inconsistency:
+    // - The 'categories' prop might be stale or incomplete.
+    // - The category ID associated with the product (if editing) might point to a category
+    //   that no longer exists in the 'categories' list.
+    if (!selectedCategory) {
+      console.error(`[ProductDialog] Critical: Category with ID ${values.category_id} not found in the provided 'categories' list. ` +
+                    `This could be due to a stale category list or an invalid category ID. Product cannot be saved without a valid category reference.`);
+      form.setError("category_id", {
+        type: "manual",
+        message: "La catégorie sélectionnée est introuvable ou invalide. Veuillez actualiser la liste des catégories ou en choisir une autre.",
+      });
+      return; // Prevent saving with an invalid or missing category reference
+    }
+
     const productData: Product = {
+      // If values.id is present (editing an existing product), it's used.
+      // If values.id is undefined (creating a new product), a new uuid is generated.
       id: values.id || uuidv4(),
       reference: values.reference,
       name: values.name,
       description: values.description || "",
-      category: values.category,
+      category: selectedCategory, // Assign the full, validated category object
       price: values.price,
       quantity: values.quantity,
-      minStock: values.minStock,
-    }
-
-    onSave(productData)
+      min_stock: values.min_stock,
+    };
+    onSave(productData);
   }
 
   return (
@@ -154,11 +178,11 @@ export function ProductDialog({ open, onOpenChange, product, categories, onSave 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <FormField
                 control={form.control}
-                name="category"
+                name="category_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Catégorie</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                    <Select onValueChange={(value) => field.onChange(Number(value))} value={String(field.value)}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner" />
@@ -166,8 +190,8 @@ export function ProductDialog({ open, onOpenChange, product, categories, onSave 
                       </FormControl>
                       <SelectContent>
                         {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -206,7 +230,7 @@ export function ProductDialog({ open, onOpenChange, product, categories, onSave 
 
             <FormField
               control={form.control}
-              name="minStock"
+              name="min_stock"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Stock minimum</FormLabel>

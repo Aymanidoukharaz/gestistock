@@ -13,8 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Edit, MoreHorizontal, Package, Plus, Search, Trash2 } from "lucide-react"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { CategoryDialog } from "./category-dialog"
@@ -30,8 +31,15 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export function CategoriesContent() {
-  const { categories, products, addCategory, updateCategory, deleteCategory } = useMockData()
-  const [isLoading, setIsLoading] = useState(true)
+  const { 
+    categories, 
+    products, 
+    addCategory, 
+    updateCategory, 
+    deleteCategory,
+    isLoadingCategories,
+    isLoadingProducts
+  } = useApiData()
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -41,15 +49,6 @@ export function CategoriesContent() {
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
 
   const itemsPerPage = 10
-
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     let result = [...categories]
@@ -93,10 +92,10 @@ export function CategoriesContent() {
     return products.filter((product) => product.category === category).length
   }
 
-  if (isLoading) {
+  if (isLoadingCategories || isLoadingProducts) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+        <LoadingSpinner className="h-8 w-8" />
       </div>
     )
   }

@@ -15,7 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
-import { useMockData } from "@/hooks/use-mock-data"
+import { useApiData } from "@/hooks/use-api-data"
 
 const categorySchema = z.object({
   name: z.string().min(1, "Le nom de la catégorie est requis"),
@@ -29,7 +29,7 @@ interface CategoryDialogProps {
 }
 
 export function CategoryDialog({ open, onOpenChange, category, onSave }: CategoryDialogProps) {
-  const { categories } = useMockData()
+  const { categories, isLoadingCategories } = useApiData()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const form = useForm<z.infer<typeof categorySchema>>({
