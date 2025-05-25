@@ -30,24 +30,28 @@ export function DashboardContent() {
       const lowStockAlerts = products.filter((p) => p.quantity < p.min_stock).length
       const totalValue = products.reduce((sum, product) => sum + product.price * product.quantity, 0)
 
-      const today = new Date().toISOString().split("T")[0]
-      const movementsToday = stockMovements.filter((m) => m.date.startsWith(today)).length
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // Set to start of today in local timezone
+      const movementsToday = stockMovements.filter((m) => {
+        const movementDate = new Date(m.date)
+        return movementDate >= today && movementDate < new Date(today.getTime() + 24 * 60 * 60 * 1000)
+      }).length
 
       // Calculate entries and exits values for the last 7 days
       const last7Days = new Date()
       last7Days.setDate(last7Days.getDate() - 7)
       const last7DaysIso = last7Days.toISOString()
 
-      const recentEntries = stockMovements.filter((m) => m.date > last7DaysIso && m.type === "entry")
-      const recentExits = stockMovements.filter((m) => m.date > last7DaysIso && m.type === "exit")
+      const recentEntries = stockMovements.filter((m) => new Date(m.date) > last7Days && m.type === "entry")
+      const recentExits = stockMovements.filter((m) => new Date(m.date) > last7Days && m.type === "exit")
 
       const entriesValue = recentEntries.reduce((sum, movement) => {
-        const product = products.find((p) => p.id === movement.productId)
+        const product = products.find((p) => p.id === movement.product.id)
         return sum + (product ? product.price * movement.quantity : 0)
       }, 0)
 
       const exitsValue = recentExits.reduce((sum, movement) => {
-        const product = products.find((p) => p.id === movement.productId)
+        const product = products.find((p) => p.id === movement.product.id)
         return sum + (product ? product.price * movement.quantity : 0)
       }, 0)
 

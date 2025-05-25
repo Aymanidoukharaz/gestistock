@@ -7,7 +7,7 @@ import type { Product } from "@/types/product"
 import type { StockMovement, StockMovementInput } from "@/types/stock-movement"
 import type { Supplier } from "@/types/supplier"
 import type { User } from "@/types/user"
-import type { EntryForm } from "@/types/entry-form"
+import type { EntryForm, EntryItem } from "@/types/entry-form"
 import type { ExitForm } from "@/types/exit-form"
 
 export interface PaginationMeta {
@@ -18,8 +18,14 @@ export interface PaginationMeta {
   from: number | null;
   to: number | null;
   path?: string;
+  links?: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
 }
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useAuth } from "./use-auth"
 import { productService } from "@/services/product-service"
 import { stockMovementService } from "@/services/stock-movement-service"
@@ -73,7 +79,7 @@ interface ApiDataContextType {
   updateUser: (user: User) => Promise<void>
   deleteUser: (userId: string) => Promise<void>
   
-  addEntryForm: (entryForm: Omit<EntryForm, "id">) => Promise<void>
+  addEntryForm: (entryForm: Omit<EntryForm, "id" | "user" | "supplier" | "created_at" | "updated_at"> & { supplierId: string; items: Array<Omit<EntryItem, "id" | "entry_form_id" | "product" | "created_at" | "updated_at"> & { productId: string; productName: string }> }) => Promise<void>
   deleteEntryForm: (entryFormId: string) => Promise<void>
   
   addExitForm: (exitForm: Omit<ExitForm, "id">) => Promise<void>
@@ -152,7 +158,7 @@ const ApiDataContext = createContext<ApiDataContextType>({
 })
 
 export function ApiDataProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+  const { user: authUser } = useAuth(); // Get authenticated user
   
   // Data states
   const [products, setProducts] = useState<Product[]>([])
@@ -184,7 +190,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch functions
   const refreshProducts = async () => {
-    if (!user) return
+    if (!authUser) return
     
     setIsLoadingProducts(true)
     setProductsError(null)
@@ -201,7 +207,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   }
   
   const refreshCategories = async () => {
-    if (!user) return
+    if (!authUser) return
     
     setIsLoadingCategories(true)
     setCategoriesError(null)
@@ -217,41 +223,20 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
     }
   }
   
-  const refreshStockMovements = async (options?: { page?: number; fetchLastPage?: boolean }) => {
-    if (!user) return
+  const refreshStockMovements = async () => {
+    if (!authUser) return
 
     setIsLoadingStockMovements(true)
     setStockMovementsError(null)
 
     try {
-      if (options?.fetchLastPage) {
-        // 1. Fetch page 1 to get the latest meta (especially last_page)
-        const firstPageResponse = await stockMovementService.getAll({ page: 1 })
-        if (!firstPageResponse.meta || typeof firstPageResponse.meta.last_page === 'undefined') {
-          console.error("Stock movements API response missing meta data or last_page:", firstPageResponse)
-          throw new Error("Invalid response structure from stock movements API (missing meta/last_page)")
-        }
-        const lastPage = firstPageResponse.meta.last_page
-
-        // 2. Fetch the actual last page
-        const lastPageResponse = await stockMovementService.getAll({ page: lastPage })
-        if (!lastPageResponse.data || !lastPageResponse.meta) {
-            console.error("Stock movements API response missing data or meta for last page:", lastPageResponse)
-            throw new Error("Invalid response structure from stock movements API (missing data/meta on last page)")
-        }
-        setStockMovements([...lastPageResponse.data])
-        setStockMovementsMeta(lastPageResponse.meta)
-      } else {
-        // Default behavior: fetch specified page or page 1
-        const pageToFetch = options?.page || 1 // Default to page 1 if no page specified
-        const response = await stockMovementService.getAll({ page: pageToFetch })
-        if (!response.data || !response.meta) {
-            console.error(`Stock movements API response missing data or meta for page ${pageToFetch}:`, response)
-            throw new Error(`Invalid response structure from stock movements API (missing data/meta on page ${pageToFetch})`)
-        }
-        setStockMovements([...response.data])
-        setStockMovementsMeta(response.meta)
+      const response = await stockMovementService.getAll()
+      if (!response.data || !response.meta) {
+          console.error(`Stock movements API response missing data or meta:`, response)
+          throw new Error(`Invalid response structure from stock movements API (missing data/meta)`)
       }
+      setStockMovements([...response.data])
+      setStockMovementsMeta(response.meta)
     } catch (error) {
       console.error("Error fetching stock movements:", error)
       setStockMovementsError(error instanceof Error ? error : new Error("Failed to fetch stock movements"))
@@ -262,25 +247,29 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
     }
   }
   
-  const refreshSuppliers = async () => {
-    if (!user) return
+  const refreshSuppliers = useCallback(async () => { // Added useCallback for potential optimization
+    if (!authUser) {
+      // setSuppliers([]); // Optionally clear if user logs out, or handle as per app logic
+      return;
+    }
     
-    setIsLoadingSuppliers(true)
-    setSuppliersError(null)
+    setIsLoadingSuppliers(true);
+    setSuppliersError(null);
     
     try {
-      const data = await supplierService.getAll()
-      setSuppliers(data)
+      const data = await supplierService.getAll(); // This will now robustly return Supplier[]
+      setSuppliers(data);
     } catch (error) {
-      console.error("Error fetching suppliers:", error)
-      setSuppliersError(error instanceof Error ? error : new Error("Failed to fetch suppliers"))
+      console.error("Error fetching suppliers in useApiData:", error);
+      setSuppliersError(error instanceof Error ? error : new Error("Failed to fetch suppliers"));
+      setSuppliers([]); // Ensure suppliers is an empty array on error
     } finally {
-      setIsLoadingSuppliers(false)
+      setIsLoadingSuppliers(false);
     }
-  }
+  }, [authUser]); // Added authUser dependency to useCallback
   
   const refreshUsers = async () => {
-    if (!user) return
+    if (!authUser) return
     
     setIsLoadingUsers(true)
     setUsersError(null)
@@ -297,7 +286,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   }
   
   const refreshEntryForms = async () => {
-    if (!user) return
+    if (!authUser) return
     
     setIsLoadingEntryForms(true)
     setEntryFormsError(null)
@@ -316,7 +305,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   }
   
   const refreshExitForms = async () => {
-    if (!user) return
+    if (!authUser) return
     
     setIsLoadingExitForms(true)
     setExitFormsError(null)
@@ -334,7 +323,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
 
   // Initial data load - fetch all data when user is authenticated
   useEffect(() => {
-    if (user) {
+    if (authUser) {
       refreshProducts()
       refreshCategories()
       refreshStockMovements()
@@ -343,7 +332,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
       refreshEntryForms()
       refreshExitForms()
     }
-  }, [user])
+  }, [authUser])
 
   // Data mutation operations
   const addProduct = async (product: Omit<Product, "id">) => {
@@ -393,7 +382,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
     try {
       await stockMovementService.create(movement)
       toast.success("Mouvement de stock enregistré avec succès")
-      await refreshStockMovements({ fetchLastPage: true }) // Modified to fetch last page
+      await refreshStockMovements()
       refreshProducts() // Products quantities will change
     } catch (error) {
       console.error("Error adding stock movement:", error)
@@ -414,12 +403,14 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   }
   
   const updateSupplier = async (supplier: Supplier) => {
+    console.log('[useApiData] updateSupplier called with ID:', supplier.id, 'and data:', supplier);
     try {
-      await supplierService.update(supplier)
+      const response = await supplierService.update(supplier)
+      console.log('[useApiData] supplierService.update response:', response);
       toast.success("Fournisseur mis à jour avec succès")
       refreshSuppliers()
     } catch (error) {
-      console.error("Error updating supplier:", error)
+      console.error("[useApiData] Error updating supplier:", error)
       throw error
     }
   }
@@ -447,12 +438,14 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   }
   
   const updateUser = async (user: User) => {
+    console.log("[useApiData] updateUser - userId:", user.id, "data:", user);
     try {
-      await userService.update(user)
+      const response = await userService.update(user)
+      console.log("[useApiData] updateUser - response:", response);
       toast.success("Utilisateur mis à jour avec succès")
       refreshUsers()
     } catch (error) {
-      console.error("Error updating user:", error)
+      console.error("[useApiData] updateUser - error:", error)
       throw error
     }
   }
@@ -468,18 +461,39 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
     }
   }
   
-  const addEntryForm = async (entryForm: Omit<EntryForm, "id">) => {
+  const addEntryForm = async (entryForm: Omit<EntryForm, "id" | "user" | "supplier" | "created_at" | "updated_at"> & { supplierId: string; items: Array<Omit<EntryItem, "id" | "entry_form_id" | "product" | "created_at" | "updated_at"> & { productId: string; productName: string }> }) => {
+    setIsLoadingEntryForms(true); // Optional: indicate loading state
+    setEntryFormsError(null);
     try {
-      await entryFormService.create(entryForm)
-      toast.success("Bon d'entrée ajouté avec succès")
-      refreshEntryForms()
-      refreshProducts() // Products quantities will change
-      refreshStockMovements() // New stock movements will be created
+      if (!authUser) {
+        console.error("Error adding entry form: User not authenticated");
+        toast.error("Erreur : Utilisateur non authentifié.");
+        throw new Error("User not authenticated");
+      }
+
+      // Prepare data for the service, including user_id
+      // The service will handle mapping to snake_case
+      const entryDataForService = {
+        ...entryForm,
+        user_id: authUser.id, // Add user_id
+      };
+
+      // Type assertion might be needed if entryFormService.create expects a more specific type
+      await entryFormService.create(entryDataForService as any); // Using 'as any' for now, refine if exact type is known for create
+      
+      toast.success("Bon d'entrée ajouté avec succès");
+      await refreshEntryForms(); // Ensure this is awaited if it's async
+      await refreshProducts();   // Ensure this is awaited
+      await refreshStockMovements(); // Ensure this is awaited
     } catch (error) {
-      console.error("Error adding entry form:", error)
-      throw error
+      console.error("Error adding entry form in useApiData:", error);
+      setEntryFormsError(error instanceof Error ? error : new Error("Unknown error adding entry form"));
+      // Do not re-throw here if you want the component to handle UI updates based on error state
+      // throw error; // Or re-throw if the calling component needs to catch it
+    } finally {
+      setIsLoadingEntryForms(false); // Optional: indicate loading state finished
     }
-  }
+  };
   
   const deleteEntryForm = async (entryFormId: string) => {
     try {
@@ -496,7 +510,16 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   
   const addExitForm = async (exitForm: Omit<ExitForm, "id">) => {
     try {
-      await exitFormService.create(exitForm)
+      if (!authUser) {
+        console.error("Error adding exit form: User not authenticated");
+        toast.error("Erreur : Utilisateur non authentifié.");
+        throw new Error("User not authenticated");
+      }
+      const exitDataForService = {
+        ...exitForm,
+        user_id: authUser.id, // Add user_id
+      };
+      await exitFormService.create(exitDataForService as any) // Use 'as any' for now, or refine type in service
       toast.success("Bon de sortie ajouté avec succès")
       refreshExitForms()
       refreshProducts() // Products quantities will change
@@ -534,7 +557,7 @@ export function ApiDataProvider({ children }: { children: React.ReactNode }) {
   
   const updateCategory = async (category: Category) => {
     try {
-      await productService.updateCategory(category.id, category.name, category.description || null);
+      await productService.updateCategory(Number(category.id), category.name, category.description || null);
       toast.success("Catégorie mise à jour avec succès");
       refreshCategories();
       refreshProducts(); // Products with this category will change

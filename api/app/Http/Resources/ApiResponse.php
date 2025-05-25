@@ -14,11 +14,14 @@ class ApiResponse
      */
     public static function success($data = null, string $message = 'Opération réussie', int $status = 200)
     {
-        return response()->json([
+        $responseData = [
             'success' => true,
             'message' => $message,
             'data' => $data
-        ], $status);
+        ];
+        error_log("[DEBUG] ApiResponse::success BEFORE json_encode - Output buffer: " . ob_get_contents());
+        error_log("[DEBUG] ApiResponse::success data: " . json_encode($responseData));
+        return response()->json($responseData, $status);
     }
 
     /**
@@ -31,11 +34,14 @@ class ApiResponse
      */
     public static function error(string $message = 'Une erreur est survenue', array $errors = [], int $status = 400)
     {
-        return response()->json([
+        $responseData = [
             'success' => false,
             'message' => $message,
             'errors' => $errors
-        ], $status);
+        ];
+        error_log("[DEBUG] ApiResponse::error BEFORE json_encode - Output buffer: " . ob_get_contents());
+        error_log("[DEBUG] ApiResponse::error data: " . json_encode($responseData));
+        return response()->json($responseData, $status);
     }
 
     /**

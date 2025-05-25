@@ -29,13 +29,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Category } from "@/types/category"
 
 export function CategoriesContent() {
-  const { 
-    categories, 
-    products, 
-    addCategory, 
-    updateCategory, 
+  const {
+    categories,
+    products,
+    addCategory,
+    updateCategory,
     deleteCategory,
     isLoadingCategories,
     isLoadingProducts
@@ -44,9 +45,9 @@ export function CategoriesContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [alertDialogOpen, setAlertDialogOpen] = useState(false)
-  const [currentCategory, setCurrentCategory] = useState<string | null>(null)
-  const [filteredCategories, setFilteredCategories] = useState<string[]>([])
-  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
+  const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([])
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
   const itemsPerPage = 10
 
@@ -55,10 +56,10 @@ export function CategoriesContent() {
 
     // Apply search filter
     if (searchTerm) {
-      result = result.filter((category) => category.toLowerCase().includes(searchTerm.toLowerCase()))
+      result = result.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))
     }
 
-    setFilteredCategories(result)
+    setFilteredCategories(result as Category[]) // Ensure type is Category[]
     setCurrentPage(1)
   }, [categories, searchTerm])
 
@@ -70,26 +71,22 @@ export function CategoriesContent() {
     setDialogOpen(true)
   }
 
-  const handleEditCategory = (category: string) => {
+  const handleEditCategory = (category: Category) => {
     setCurrentCategory(category)
     setDialogOpen(true)
   }
 
-  const handleDeleteCategory = (category: string) => {
+  const handleDeleteCategory = (category: Category) => {
     setCategoryToDelete(category)
     setAlertDialogOpen(true)
   }
 
   const confirmDeleteCategory = () => {
     if (categoryToDelete) {
-      deleteCategory(categoryToDelete)
+      deleteCategory(categoryToDelete.id)
       setAlertDialogOpen(false)
       setCategoryToDelete(null)
     }
-  }
-
-  const getProductCountByCategory = (category: string) => {
-    return products.filter((product) => product.category === category).length
   }
 
   if (isLoadingCategories || isLoadingProducts) {
@@ -150,10 +147,10 @@ export function CategoriesContent() {
                   </TableRow>
                 ) : (
                   paginatedCategories.map((category) => (
-                    <TableRow key={category}>
-                      <TableCell className="font-medium">{category}</TableCell>
+                    <TableRow key={category.id}>
+                      <TableCell className="font-medium">{category.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{getProductCountByCategory(category)}</Badge>
+                        <Badge variant="outline">{category.products_count ?? 0}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -171,7 +168,7 @@ export function CategoriesContent() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                (window.location.href = `/products?category=${encodeURIComponent(category)}`)
+                                (window.location.href = `/products?category=${encodeURIComponent(category.name)}`)
                               }
                             >
                               <Package className="mr-2 h-4 w-4" />
@@ -207,11 +204,20 @@ export function CategoriesContent() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         category={currentCategory}
-        onSave={(oldCategory, newCategory) => {
-          if (oldCategory) {
-            updateCategory(oldCategory, newCategory)
+        onSave={(
+          oldCategoryData: Category | null,
+          newCategoryData: Omit<Category, "id" | "created_at" | "updated_at" | "products_count"> // Adjusted to match CategoryDialog
+        ) => {
+          if (oldCategoryData) {
+            // For updateCategory: Spread oldCategoryData and then newCategoryData
+            // to ensure all Category fields are present, with newCategoryData overriding relevant ones.
+            updateCategory({ ...oldCategoryData, ...newCategoryData });
           } else {
-            addCategory(newCategory)
+            // For addCategory: newCategoryData should match Omit<Category, "id" | "created_at" | "updated_at">
+            // The addCategory in use-api-data.tsx expects Omit<Category, "id" | "created_at" | "updated_at">
+            // Our newCategoryData is Omit<Category, "id" | "created_at" | "updated_at" | "products_count">
+            // This is compatible.
+            addCategory(newCategoryData);
           }
         }}
       />

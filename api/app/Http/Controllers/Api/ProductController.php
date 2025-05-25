@@ -78,7 +78,7 @@ class ProductController extends Controller
      */
     public function categories()
     {
-        $categories = \App\Models\Category::all();
+        $categories = \App\Models\Category::withCount('products')->get();
         return ApiResponse::success(\App\Http\Resources\CategoryResource::collection($categories), 'Liste des catégories de produits récupérée avec succès');
     }
 }

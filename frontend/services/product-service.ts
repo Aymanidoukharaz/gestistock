@@ -21,8 +21,14 @@ const parseApiResponse = <T>(data: any): T => {
 const transformProduct = (product: any): Product => {
   return {
     ...product,
+    id: String(product.id), // Ensure id is a string
+    price: Number(product.price),
+    quantity: Number(product.quantity),
+    min_stock: Number(product.min_stock),
+    // category handling might need to be more robust if it's an object
+    // and Category type expects a simpler structure or just an ID.
+    // For now, assuming product.category is compatible or will be handled by component.
     category: product.category,
-    min_stock: product.min_stock,
   };
 };
 

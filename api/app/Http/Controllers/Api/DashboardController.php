@@ -8,7 +8,7 @@ use App\Models\EntryForm;
 use App\Models\ExitForm;
 use App\Models\Product;
 use App\Models\StockMovement;
-use App\Services\ApiResponse;
+use App\Http\Resources\ApiResponse;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

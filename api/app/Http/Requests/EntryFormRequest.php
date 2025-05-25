@@ -28,7 +28,16 @@ class EntryFormRequest extends FormRequest
             'date' => [
                 'required',                'date',
                 function ($attribute, $value, $fail) {
-                    if (Carbon::parse($value)->isAfter(Carbon::now())) {
+                    // Parse the input date string and set its timezone to Europe/Paris, then get the start of that day.
+                    $inputDateInParis = Carbon::parse($value, 'Europe/Paris')->startOfDay();
+
+                    // Get the current date and time in Europe/Paris timezone, then get the start of that day.
+                    $currentDateInParis = Carbon::now('Europe/Paris')->startOfDay();
+
+                    // Compare the input date (at the start of its day in Paris time)
+                    // with the current date (at the start of its day in Paris time).
+                    // This ensures that "today" from the user's perspective is correctly validated.
+                    if ($inputDateInParis->isAfter($currentDateInParis)) {
                         $fail('La date du bon d\'entrée ne peut pas être dans le futur.');
                     }
                 },

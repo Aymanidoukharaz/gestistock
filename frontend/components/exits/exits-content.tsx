@@ -130,68 +130,64 @@ export function ExitsContent() {
           <div className="mt-4 rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Référence</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Destination</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
+                <TableRow><TableHead>Référence</TableHead><TableHead>Date</TableHead><TableHead>Destination</TableHead><TableHead>Statut</TableHead><TableHead>Total</TableHead>{/* Added Total Header */}<TableHead className="text-right">Actions</TableHead></TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedExits.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                  <TableRow key="no-exits-row"><TableCell colSpan={6} className="h-24 text-center">{/* Adjusted colSpan */}
                       Aucun bon de sortie trouvé.
-                    </TableCell>
-                  </TableRow>
+                    </TableCell></TableRow>
                 ) : (
-                  paginatedExits.map((exit) => (
-                    <TableRow key={exit.id}>
-                      <TableCell className="font-medium">{exit.reference}</TableCell>
-                      <TableCell>{(exit.date && !isNaN(new Date(exit.date).getTime())) ? new Date(exit.date).toLocaleDateString("fr-FR") : "N/A"}</TableCell>
-                      <TableCell>{exit.destination}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            exit.status === "completed" ? "success" : exit.status === "pending" ? "warning" : "default"
-                          }
-                        >
-                          {exit.status === "completed"
-                            ? "Complété"
-                            : exit.status === "pending"
-                              ? "En attente"
-                              : "Brouillon"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Ouvrir menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleViewExit(exit)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Voir détails
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handlePrintExit(exit)}>
-                              <Printer className="mr-2 h-4 w-4" />
-                              Imprimer
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDeleteExit(exit.id)} className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  paginatedExits.map((exit, index) => {
+                    // Calculate total for the current exit form
+                    const currentExitTotal = exit.items.reduce((acc, item) => {
+                      const price = item.product?.price || 0;
+                      return acc + (price * item.quantity);
+                    }, 0);
+
+                    return (
+                      <TableRow key={`${exit.id}-${index}`}><TableCell className="font-medium">{exit.reference}</TableCell><TableCell>{(exit.date && !isNaN(new Date(exit.date).getTime())) ? new Date(exit.date).toLocaleDateString("fr-FR") : "N/A"}</TableCell><TableCell>{exit.destination}</TableCell><TableCell>
+                          <Badge
+                            variant={
+                              exit.status === "completed" ? "success" : exit.status === "pending" ? "warning" : "default"
+                            }
+                          >
+                            {exit.status === "completed"
+                              ? "Complété"
+                              : exit.status === "pending"
+                                ? "En attente"
+                                : "Brouillon"}
+                          </Badge>
+                        </TableCell><TableCell>{/* Added Total Cell */}
+                          {currentExitTotal.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                        </TableCell><TableCell className="text-right">{/* This is the correct Actions cell */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Ouvrir menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleViewExit(exit)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Voir détails
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePrintExit(exit)}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Imprimer
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleDeleteExit(exit.id)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell></TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

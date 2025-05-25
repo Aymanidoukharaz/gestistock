@@ -6,6 +6,8 @@ import type { ExitForm } from "@/types/exit-form"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Printer } from "lucide-react"
+import jsPDF from "jspdf"
+import autoTable from 'jspdf-autotable'
 
 interface ExitDetailsDialogProps {
   open: boolean
@@ -17,8 +19,117 @@ export function ExitDetailsDialog({ open, onOpenChange, exit }: ExitDetailsDialo
   if (!exit) return null
 
   const handlePrint = () => {
-    // Mock print functionality
-    alert(`Impression du bon de sortie ${exit.reference}`)
+    if (!exit) return;
+
+    console.log("[ExitDetailsDialog] Starting NATIVE PDF generation for:", exit.reference);
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "a4",
+    });
+
+    const pageMargin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let currentY = pageMargin;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Bon de sortie: ${exit.reference}`, pageWidth / 2, currentY, { align: "center" });
+    currentY += 30;
+
+    // Details section
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Détails du bon de sortie", pageMargin, currentY);
+    currentY += 15;
+
+    // Destination & Date
+    doc.text("Destination:", pageMargin, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text(exit.destination, pageMargin + 70, currentY); // Adjust X offset as needed
+
+    const dateText = `Date: ${new Date(exit.date).toLocaleDateString("fr-FR")}`;
+    const dateTextWidth = doc.getTextWidth(dateText);
+    doc.setFont("helvetica", "normal");
+    doc.text("Date:", pageWidth - pageMargin - dateTextWidth - 35, currentY); // Adjust positioning
+    doc.setFont("helvetica", "bold");
+    doc.text(new Date(exit.date).toLocaleDateString("fr-FR"), pageWidth - pageMargin - doc.getTextWidth(new Date(exit.date).toLocaleDateString("fr-FR")), currentY);
+    currentY += 15;
+    
+    // Reason
+    doc.setFont("helvetica", "normal");
+    doc.text("Raison:", pageMargin, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text(exit.reason, pageMargin + 70, currentY); // Adjust X offset
+    currentY += 25;
+
+
+    // Products Table
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Produits", pageMargin, currentY);
+    currentY += 5; // Small gap before table
+
+    const tableColumnStyles = {
+      0: { cellWidth: 'auto' as const }, // Product name
+      1: { cellWidth: 60, halign: 'right' as const }, // Quantity
+      2: { cellWidth: 70, halign: 'right' as const }, // Unit Price
+      3: { cellWidth: 70, halign: 'right' as const }, // Total
+    } as any;
+
+    const head = [["Produit", "Quantité", "Prix Unitaire", "Total"]];
+    let grandTotal = 0;
+    const body = exit.items.map(item => {
+      const unitPrice = item.product?.price || 0;
+      const itemTotal = unitPrice * item.quantity;
+      grandTotal += itemTotal;
+      return [
+        item.product?.name || "N/A",
+        item.quantity.toString(),
+        unitPrice.toLocaleString("fr-FR", { style: "currency", currency: "EUR" }),
+        itemTotal.toLocaleString("fr-FR", { style: "currency", currency: "EUR" }),
+      ];
+    });
+
+    autoTable(doc, {
+      startY: currentY,
+      head: head,
+      body: body,
+      theme: 'grid',
+      headStyles: { fillColor: [220, 220, 220], textColor: 20, fontStyle: 'bold', halign: 'center' },
+      columnStyles: tableColumnStyles,
+      margin: { left: pageMargin, right: pageMargin },
+      didDrawPage: (data) => {
+        currentY = data.cursor?.y || currentY;
+      }
+    });
+    // currentY is updated by didDrawPage hook
+
+    // Grand Total
+    currentY += 10; // Add some space after the table
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    const totalText = `Total Général: ${grandTotal.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}`;
+    const totalTextWidth = doc.getTextWidth(totalText);
+    doc.text(totalText, pageWidth - pageMargin - totalTextWidth, currentY);
+    currentY += 20;
+
+    // Notes
+    if (exit.notes) {
+      // currentY += 20; // Space after table (already added for grand total or use this if no grand total)
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text("Notes:", pageMargin, currentY);
+      currentY += 15;
+      doc.setFont("helvetica", "normal");
+      const notesLines = doc.splitTextToSize(exit.notes, pageWidth - (2 * pageMargin));
+      doc.text(notesLines, pageMargin, currentY);
+      // currentY += (notesLines.length * 12) + 10;
+    }
+
+    doc.save(`bon-sortie-${exit.reference}.pdf`);
+    console.log("[ExitDetailsDialog] Native PDF generated and download initiated.");
   }
 
   return (
@@ -61,15 +172,35 @@ export function ExitDetailsDialog({ open, onOpenChange, exit }: ExitDetailsDialo
                   <TableRow>
                     <TableHead>Produit</TableHead>
                     <TableHead className="text-right">Quantité</TableHead>
+                    <TableHead className="text-right">Prix Unitaire</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {exit.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.productName}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                    </TableRow>
-                  ))}
+                  {exit.items.map((item) => {
+                    const unitPrice = item.product?.price || 0;
+                    const itemTotal = unitPrice * item.quantity;
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.product?.name || "Nom du produit non disponible"}</TableCell>
+                        <TableCell className="text-right">{item.quantity}</TableCell>
+                        <TableCell className="text-right">
+                          {unitPrice.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {itemTotal.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-right font-medium">
+                      Total Général
+                    </TableCell>
+                    <TableCell className="text-right font-bold">
+                      {(exit.items.reduce((acc, item) => acc + (item.product?.price || 0) * item.quantity, 0)).toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </div>

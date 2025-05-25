@@ -101,6 +101,19 @@ class StockMovementController extends Controller
         return ApiResponse::success(null, 'Mouvement supprimé avec succès');
     }
 
+/**
+     * Display a listing of the stock movements for a given product.
+     */
+    public function getByProduct(Product $product)
+    {
+        $movements = $product->stockMovements()->orderBy('date', 'desc')->get();
+        // It's good practice to load related models if they are consistently used in the resource
+        // and not automatically loaded by the relationship or resource.
+        // Example: $movements->load(['user']); // if user is needed and not always loaded.
+        // For now, assuming StockMovementResource handles necessary relations or they are eager loaded.
+
+        return ApiResponse::success(StockMovementResource::collection($movements), 'Mouvements de stock pour le produit récupérés avec succès');
+    }
     /**
      * Retourne les mouvements de stock d'un produit donné.
      */    public function productMovements($productId)

@@ -57,7 +57,7 @@ export function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
   useEffect(() => {
     if (user) {
       form.reset({
-        id: user.id,
+        id: user.id === null ? undefined : user.id, // Coerce null to undefined for the form state
         name: user.name,
         email: user.email,
         role: user.role,
@@ -77,24 +77,55 @@ export function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
   }, [user, form, open])
 
   const onSubmit = async (values: z.infer<typeof userSchema>) => {
+    console.log("[UserDialog] onSubmit - form values:", values);
     setIsSubmitting(true)
 
     try {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      const userData: User = {
-        id: values.id || uuidv4(),
+      const userData: Partial<User> = {
         name: values.name,
         email: values.email,
         role: values.role,
         active: values.active,
+      };
+
+      if (values.password) {
+        userData.password = values.password;
       }
 
+      console.log("[UserDialog] onSubmit - current user prop:", user);
       if (user) {
-        updateUser(userData)
+        // For updateUser, the password field in User type is optional.
+        // If values.password is empty, it won't be sent, which is fine for updates.
+        // The updateUser function expects a single User object.
+        const updatedUserData: User = {
+          id: user.id, // Include the user's ID
+          name: userData.name!,
+          email: userData.email!,
+          role: userData.role!,
+          active: userData.active!,
+        };
+        if (userData.password) { // Only include password if it's being changed
+          updatedUserData.password = userData.password;
+        }
+        console.log("[UserDialog] onSubmit - userData for update:", updatedUserData);
+        await updateUser(updatedUserData);
       } else {
-        addUser(userData)
+        // For addUser, ensure password is included if provided.
+        // The API expects it for new users.
+        // The addUser function expects Omit<User, "id">
+        const newUserData: Omit<User, "id"> = {
+          name: values.name,
+          email: values.email,
+          role: values.role,
+          active: values.active,
+        };
+        if (values.password) {
+          newUserData.password = values.password;
+        }
+        await addUser(newUserData);
       }
 
       onOpenChange(false)
@@ -117,7 +148,7 @@ export function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => { console.error("[UserDialog] Form Validation Errors:", errors); })} className="space-y-4">
             <FormField
               control={form.control}
               name="name"

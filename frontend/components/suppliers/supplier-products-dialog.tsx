@@ -25,7 +25,7 @@ export function SupplierProductsDialog({ open, onOpenChange, supplier }: Supplie
       // In a real app, we would fetch products by supplier ID
       // For this mock, we'll just filter randomly based on supplier ID
       const filteredProducts = products.filter(
-        (product) => Number.parseInt(product.id.charAt(0), 16) % 3 === Number.parseInt(supplier.id.charAt(0), 16) % 3,
+        (product) => Number.parseInt(String(product.id).charAt(0), 16) % 3 === Number.parseInt(String(supplier.id).charAt(0), 16) % 3,
       )
       setSupplierProducts(filteredProducts)
     }
@@ -83,7 +83,7 @@ export function SupplierProductsDialog({ open, onOpenChange, supplier }: Supplie
                       <TableCell className="font-medium">{product.reference}</TableCell>
                       <TableCell>{product.name}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{product.category}</Badge>
+                        <Badge variant="outline">{product.category?.name || 'No Category'}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         {product.price.toLocaleString("fr-FR", {

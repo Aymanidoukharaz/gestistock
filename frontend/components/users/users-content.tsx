@@ -130,7 +130,7 @@ export function UsersContent() {
               </TableHeader>
               <TableBody>
                 {paginatedUsers.length === 0 ? (
-                  <TableRow>
+                  <TableRow key="no-users-row">
                     <TableCell colSpan={5} className="h-24 text-center">
                       Aucun utilisateur trouvé.
                     </TableCell>

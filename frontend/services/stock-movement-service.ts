@@ -6,47 +6,82 @@ import { PaginationMeta } from "@/hooks/use-api-data"; // Import PaginationMeta
 interface PaginatedResponse<T> {
   data: T[];
   meta: PaginationMeta;
+  links?: {
+    first: string | null;
+    last: string | null;
+    prev: string | null;
+    next: string | null;
+  };
 }
 
 // Helper function to parse response data
 const parseApiResponse = <T>(data: any): T => {
+  let parsedData: any;
   if (typeof data === 'string' && data.startsWith('+')) {
     try {
-      return JSON.parse(data.substring(1)) as T;
+      parsedData = JSON.parse(data.substring(1));
     } catch (error) {
       console.error("Failed to parse API response:", error);
       throw new Error("Invalid JSON response from API after removing '+': " + (error as Error).message);
     }
+  } else {
+    parsedData = data;
   }
-  // If data is already an object with data and meta (likely for paginated responses), return as is.
-  if (typeof data === 'object' && data !== null && 'data' in data && 'meta' in data) {
-    return data as T;
-  }
-  // Fallback for non-paginated or differently structured data
-  return data as T;
+
+  // Recursively parse date strings into Date objects
+  const parseDates = (obj: any): any => {
+    if (typeof obj !== 'object' || obj === null) {
+      return obj;
+    }
+
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const value = obj[key];
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(value)) {
+          obj[key] = new Date(value);
+        } else if (typeof value === 'object') {
+          obj[key] = parseDates(value);
+        }
+      }
+    }
+    return obj;
+  };
+
+  return parseDates(parsedData) as T;
 };
 
 
 export const stockMovementService = {
-  getAll: async (params?: { page?: number }): Promise<PaginatedResponse<StockMovement>> => {
-    const response = await api.get<any>("/stock-movements", { params });
-    console.log("Stock movements raw response:", response.data);
+  getAll: async (): Promise<PaginatedResponse<StockMovement>> => {
+    let allMovements: StockMovement[] = [];
+    let currentPage = 1;
+    let hasMorePages = true;
+    let lastMeta: PaginationMeta | undefined;
 
-    // The API is expected to return { data: [...], meta: {...} } when paginated
-    const parsedData = parseApiResponse<PaginatedResponse<StockMovement>>(response.data);
-    console.log("Stock movements parsed data:", parsedData);
+    while (hasMorePages) {
+      const response = await api.get<any>("/stock-movements", { params: { page: currentPage } });
+      console.log(`Stock movements raw response (page ${currentPage}):`, response.data);
 
-    if (!parsedData || !Array.isArray(parsedData.data) || !parsedData.meta) {
-      console.error("Invalid paginated response structure:", parsedData);
-      // Fallback or throw error if structure is not as expected
-      // For robustness, ensure a valid structure is returned or an error is clearly indicated.
-      // This might involve returning a default PaginatedResponse structure on error
-      // or re-throwing a more specific error.
-      // For now, let's assume if it's not right, it's an error state.
-      throw new Error("Invalid paginated response structure from stock movements API.");
+      const parsedData = parseApiResponse<PaginatedResponse<StockMovement>>(response.data);
+      console.log(`Stock movements parsed data (page ${currentPage}):`, parsedData);
+
+      if (!parsedData || !Array.isArray(parsedData.data) || !parsedData.meta) {
+        console.error("Invalid paginated response structure:", parsedData);
+        throw new Error("Invalid paginated response structure from stock movements API.");
+      }
+
+      allMovements = allMovements.concat(parsedData.data);
+      lastMeta = parsedData.meta;
+
+      if (parsedData.links && parsedData.links.next) {
+        currentPage++;
+      } else {
+        hasMorePages = false;
+      }
     }
     
-    return parsedData;
+    // Return all movements and the meta from the last page
+    return { data: allMovements, meta: lastMeta! };
   },
   
   create: async (movement: StockMovementInput): Promise<StockMovement> => {

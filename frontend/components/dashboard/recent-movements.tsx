@@ -9,37 +9,29 @@ interface Movement {
   productName: string
   type: "entry" | "exit"
   quantity: number
-  date: string
+  date: Date // Keep as Date, but parse it
+  createdAt: Date // Keep as Date, but parse it
 }
 
 export function RecentMovements() {
-  const { stockMovements, products, isLoadingStockMovements, isLoadingProducts } = useApiData()
+  const { stockMovements, isLoadingStockMovements } = useApiData() // Removed products and isLoadingProducts
   const [recentMovements, setRecentMovements] = useState<Movement[]>([])
 
   useEffect(() => {
-    // Get product names
-    const productMap = products.reduce(
-      (acc, product) => {
-        acc[product.id] = product.name
-        return acc
-      },
-      {} as Record<string, string>,
-    )
-
-    // Get recent movements
     const movements = stockMovements
       .map((movement) => ({
         id: movement.id,
-        productName: productMap[movement.productId] || "Produit inconnu",
+        productName: movement.product?.name || "Produit inconnu",
         type: movement.type,
         quantity: movement.quantity,
-        date: movement.date,
+        date: new Date(movement.date), // Convert string to Date object
+        createdAt: new Date(movement.created_at), // Convert string to Date object
       }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5)
+      .sort((a, b) => b.date.getTime() - a.date.getTime()) // Sort by movement date (most recent first)
+      .slice(0, 5); // Take the top 5 most recent movements from today
 
-    setRecentMovements(movements)
-  }, [stockMovements, products])
+    setRecentMovements(movements);
+  }, [stockMovements]);
 
   return (
     <div className="space-y-4">
@@ -61,9 +53,10 @@ export function RecentMovements() {
             <div>
               <p className="text-sm font-medium dark:text-gray-200">{movement.productName}</p>
               <p className="text-xs text-muted-foreground">
-                {new Date(movement.date).toLocaleString("fr-FR", {
+                {movement.date.toLocaleString("fr-FR", {
                   day: "2-digit",
                   month: "2-digit",
+                  year: "numeric",
                   hour: "2-digit",
                   minute: "2-digit",
                 })}

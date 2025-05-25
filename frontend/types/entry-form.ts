@@ -1,14 +1,16 @@
+import { Product } from "./product";
+
 export interface EntryItem {
-  id: string
-  productId: string
-  productName: string
-  quantity: number
-  unitPrice: number
-  total: number
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
 }
 
 export interface EntryForm {
-  id: string
+  id: string;
   reference: string
   date: string
   supplierId: string

@@ -110,11 +110,19 @@ export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps)
   }
 
   const getProductById = (productId: string): Product | undefined => {
-    return products.find((product) => product.id === productId)
+    // Ensure a consistent string-to-string comparison,
+    // in case product.id is a number from the data source.
+    return products.find(
+      (product) => String(product.id) === productId
+    );
   }
 
   const getSupplierById = (supplierId: string): Supplier | undefined => {
-    return suppliers.find((supplier) => supplier.id === supplierId)
+    // Ensure a consistent string-to-string comparison,
+    // in case supplier.id is a number from the data source.
+    return suppliers.find(
+      (supplier) => String(supplier.id) === supplierId
+    );
   }
 
   const calculateTotal = () => {
@@ -131,36 +139,40 @@ export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps)
 
       const supplier = getSupplierById(values.supplierId)
       if (!supplier) throw new Error("Fournisseur non trouvé")
+      const supplierName = supplier.name;
 
       const entryItems: EntryItem[] = values.items.map((item) => {
-        const product = getProductById(item.productId)
-        if (!product) throw new Error("Produit non trouvé")
+        const productDetails = getProductById(item.productId);
+        if (!productDetails) throw new Error(`Produit non trouvé pour ID: ${item.productId}`);
 
         return {
           id: item.id || uuidv4(),
           productId: item.productId,
-          productName: product.name,
+          productName: productDetails.name,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.quantity * item.unitPrice,
-        }
-      })
+        };
+      });
 
-      const total = entryItems.reduce((sum, item) => sum + item.total, 0)
+      // The grandTotal calculation (previously 'total') is removed as it's not part of the API payload.
+      // The UI's total display is handled by the existing calculateTotal() function.
 
-      const entryForm: EntryForm = {
-        id: uuidv4(),
+      const currentStatus: "pending" | "draft" | "completed" = "pending";
+      const entryFormPayload = {
         reference: values.reference,
         date: values.date,
-        supplierId: values.supplierId,
-        supplierName: supplier.name,
+        supplierId: values.supplierId, // values.supplierId is already a string from the form schema
+        supplierName: supplierName,
+        status: currentStatus,
         notes: values.notes || "",
-        status: "completed",
-        items: entryItems,
-        total,
-      }
+        total: calculateTotal(),
+        // Fields are omitted here to match the expected payload type for addEntryForm:
+        // No id, user, supplier (object), created_at, updated_at.
+        items: entryItems, // Pass the already correctly structured entryItems
+      };
 
-      addEntryForm(entryForm)
+      addEntryForm(entryFormPayload);
       onOpenChange(false)
     } catch (error) {
       console.error("Error submitting entry form:", error)
@@ -213,7 +225,7 @@ export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps)
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Fournisseur</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un fournisseur" />
@@ -221,7 +233,7 @@ export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps)
                     </FormControl>
                     <SelectContent>
                       {suppliers.map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id}>
+                        <SelectItem key={supplier.id} value={String(supplier.id)}>
                           {supplier.name}
                         </SelectItem>
                       ))}
@@ -258,7 +270,6 @@ export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps)
                                 form.setValue(`items.${index}.unitPrice`, product.price)
                               }
                             }}
-                            defaultValue={field.value}
                             value={field.value}
                           >
                             <FormControl>
@@ -268,7 +279,7 @@ export function EntryDialog({ open, onOpenChange, suppliers }: EntryDialogProps)
                             </FormControl>
                             <SelectContent>
                               {products.map((product) => (
-                                <SelectItem key={product.id} value={product.id}>
+                                <SelectItem key={product.id} value={String(product.id)}>
                                   {product.name} ({product.reference})
                                 </SelectItem>
                               ))}

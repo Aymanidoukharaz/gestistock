@@ -17,12 +17,12 @@ class StockMovementResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'quantity' => $this->quantity,
-            'date' => $this->date->format('Y-m-d H:i:s'),
+            'date' => $this->date->toIso8601String(),
             'reason' => $this->reason,
             'product' => new ProductResource($this->whenLoaded('product')),
             'user' => new UserResource($this->whenLoaded('user')),
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s')
+            'created_at' => $this->created_at->toIso8601String(),
+            'updated_at' => $this->updated_at->toIso8601String()
         ];
     }
 }

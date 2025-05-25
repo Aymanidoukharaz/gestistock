@@ -122,30 +122,55 @@ export function ExitDialog({ open, onOpenChange }: ExitDialogProps) {
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      const exitItems: ExitItem[] = values.items.map((item) => {
-        const product = getProductById(item.productId)
-        if (!product) throw new Error("Produit non trouvé")
+      // Filter out items where no product is selected and prepare valid items
+      const validRawItems = values.items.filter(item => item.productId && item.productId.trim() !== "");
+
+      if (validRawItems.length === 0) {
+        // This should ideally be caught by Zod schema's .min(1) on items array,
+        // but as a safeguard, prevent submission if no valid items.
+        form.setError("items", { type: "manual", message: "Au moins un produit valide doit être ajouté." });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const exitItems: ExitItem[] = validRawItems.map((item) => {
+        const product = getProductById(item.productId);
+        // This check should ideally not be needed if productId is guaranteed by filter and Zod,
+        // but as a strong safeguard:
+        if (!product) {
+            // This case should be rare if products list is up-to-date and productId is valid
+            console.error(`Produit non trouvé pour ID: ${item.productId} lors de la soumission.`);
+            // Optionally, you could set a form error here for the specific item
+            throw new Error(`Un produit sélectionné (ID: ${item.productId}) est introuvable.`);
+        }
 
         return {
-          id: item.id || uuidv4(),
-          productId: item.productId,
-          productName: product.name,
+          id: item.id || uuidv4(), // This 'id' is for the ExitItem
+          product: product, // Assign the fetched product object directly
           quantity: item.quantity,
-        }
-      })
+        };
+      });
 
-      const exitForm: ExitForm = {
-        id: uuidv4(),
+      const exitFormPayload = { // Changed variable name to avoid confusion with ExitForm type
         reference: values.reference,
         date: values.date,
         destination: values.destination,
         reason: values.reason,
         notes: values.notes || "",
-        status: "completed",
-        items: exitItems,
-      }
+        status: "completed", // Consider if status should be dynamic
+        items: exitItems.map(item => ({
+          id: item.id,
+          product_id: item.product.id, // Access from nested product object
+          productName: item.product.name, // Access from nested product object, if backend needs it
+          quantity: item.quantity,
+        })),
+        // user_id will be added in useApiData.addExitForm
+      };
 
-      addExitForm(exitForm)
+      // The addExitForm in useApiData now expects Omit<ExitForm, "id">,
+      // but our payload here is closer to Omit<ExitForm, "id" | "user_id"> before useApiData adds user_id.
+      // The 'as any' in useApiData for exitFormService.create handles the final structure.
+      await addExitForm(exitFormPayload as any); // Cast to any, as downstream service handles final structure
       onOpenChange(false)
     } catch (error) {
       console.error("Error submitting exit form:", error)

@@ -1,5 +1,7 @@
 <?php
 
+error_log("[DEBUG_SIMPLE] index.php VERY START");
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 

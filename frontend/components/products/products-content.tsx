@@ -54,7 +54,7 @@ export function ProductsContent() {
 
     // Apply category filter
     if (categoryFilter !== "all") {
-      result = result.filter((product) => product.category?.id === Number(categoryFilter))
+      result = result.filter((product) => Number(product.category?.id) === Number(categoryFilter))
     }
 
     setFilteredProducts(result)

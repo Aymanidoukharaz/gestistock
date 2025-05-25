@@ -14,14 +14,14 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import type { Supplier } from "@/types/supplier"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { useForm, FieldErrors } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { useApiData } from "@/hooks/use-api-data"
 
 const supplierSchema = z.object({
-  id: z.string().optional(),
+  id: z.coerce.string().optional(), // Coerce ID to string to handle numeric input
   name: z.string().min(1, "Le nom est requis"),
   email: z.string().email("Email invalide"),
   phone: z.string().min(1, "Le téléphone est requis"),
@@ -74,6 +74,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
   }, [supplier, form, open])
 
   const onSubmit = async (values: z.infer<typeof supplierSchema>) => {
+    console.log('[SupplierDialog] Update handler triggered', values);
     setIsSubmitting(true)
 
     try {
@@ -90,9 +91,10 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
       }
 
       if (supplier) {
-        updateSupplier(supplierData)
+        console.log('[SupplierDialog] Calling updateSupplier with:', supplier.id, supplierData);
+        await updateSupplier(supplierData)
       } else {
-        addSupplier(supplierData)
+        await addSupplier(supplierData)
       }
 
       onOpenChange(false)
@@ -102,6 +104,10 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
       setIsSubmitting(false)
     }
   }
+
+  const onError = (errors: FieldErrors<z.infer<typeof supplierSchema>>) => {
+    console.log('[SupplierDialog] Form validation failed:', errors);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,7 +121,7 @@ export function SupplierDialog({ open, onOpenChange, supplier }: SupplierDialogP
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"

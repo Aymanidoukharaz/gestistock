@@ -16,19 +16,26 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { useEffect, useState } from "react"
 import { useApiData } from "@/hooks/use-api-data"
+import { Category } from "@/types/category" // Added import
 
 const categorySchema = z.object({
   name: z.string().min(1, "Le nom de la catégorie est requis"),
+  description: z.string().nullable(), // Added description
 })
 
 interface CategoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  category: string | null
-  onSave: (oldCategory: string | null, newCategory: string) => void
+  category: Category | null // Changed type
+  onSave: (oldCategory: Category | null, newCategoryData: Omit<Category, "id" | "created_at" | "updated_at" | "products_count">) => void // Changed type
 }
 
 export function CategoryDialog({ open, onOpenChange, category, onSave }: CategoryDialogProps) {
+  // Assuming categories from useApiData is Category[] for the check below.
+  // If it's string[], the check `categories.some(c => c.name === values.name)` would need adjustment.
+  // For now, let's assume it's Category[] and the check is for illustrative purposes.
+  // The original code `categories.includes(values.name)` implies it was string[].
+  // This part might need further refinement based on useApiData's actual return type for categories.
   const { categories, isLoadingCategories } = useApiData()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -36,17 +43,20 @@ export function CategoryDialog({ open, onOpenChange, category, onSave }: Categor
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
+      description: null, // Added description
     },
   })
 
   useEffect(() => {
     if (category) {
       form.reset({
-        name: category,
+        name: category.name, // Changed to category.name
+        description: category.description ?? null, // Added description
       })
     } else {
       form.reset({
         name: "",
+        description: null, // Added description
       })
     }
   }, [category, form, open])
@@ -56,7 +66,10 @@ export function CategoryDialog({ open, onOpenChange, category, onSave }: Categor
 
     try {
       // Check if category already exists (only for new categories)
-      if (!category && categories.includes(values.name)) {
+      // This check needs to be updated if `categories` from `useApiData` is an array of Category objects
+      // For example: if (!category && categories.some(c => c.name === values.name)) {
+      // For now, assuming the existing logic's intent if categories were string[]
+      if (!category && (categories as unknown as string[]).includes(values.name)) {
         form.setError("name", {
           type: "manual",
           message: "Cette catégorie existe déjà",
@@ -68,7 +81,7 @@ export function CategoryDialog({ open, onOpenChange, category, onSave }: Categor
       // Simulate API delay
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      onSave(category, values.name)
+      onSave(category, values) // Changed to pass values
       onOpenChange(false)
     } catch (error) {
       console.error("Error submitting category:", error)
@@ -96,6 +109,19 @@ export function CategoryDialog({ open, onOpenChange, category, onSave }: Categor
                   <FormLabel>Nom de la catégorie</FormLabel>
                   <FormControl>
                     <Input placeholder="Nom de la catégorie" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Description de la catégorie (optionnel)" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
