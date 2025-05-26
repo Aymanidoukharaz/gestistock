@@ -129,19 +129,6 @@ export function Sidebar() {
             </div>
           )}
 
-          <div className="px-3 py-6">
-            <h3 className="px-4 mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
-              Analyses
-            </h3>
-            <nav className="grid gap-1.5 px-3">
-              <SidebarItem
-                href="/reports"
-                icon={<BarChart3 className="h-4.5 w-4.5" />}
-                title="Rapports"
-                isActive={pathname.startsWith("/reports")}
-              />
-            </nav>
-          </div>
         </ScrollArea>
         <div className="border-t p-4 dark:border-gray-800">
           <div className="flex items-center gap-3 py-2">

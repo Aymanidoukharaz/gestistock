@@ -8,17 +8,21 @@ import { Badge } from "@/components/ui/badge"
 import { Printer } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable, { ColumnInput } from 'jspdf-autotable' // Import ColumnInput
+import { entryFormService } from "@/services/entry-form-service"
+import { useToast } from "@/components/ui/use-toast"
 
 interface EntryDetailsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   entry: EntryForm | null
+  onEntryFormUpdated: () => void // Callback to refresh parent data
 }
 
-export function EntryDetailsDialog({ open, onOpenChange, entry }: EntryDetailsDialogProps) {
-  // Removed printRef as html2canvas is no longer used
+export function EntryDetailsDialog({ open, onOpenChange, entry, onEntryFormUpdated }: EntryDetailsDialogProps) {
+  const { toast } = useToast()
 
   if (!entry) return null
+
 
   const handlePrint = () => {
     console.log("[EntryDetailsDialog] Starting NATIVE PDF generation for:", entry.reference)
@@ -73,7 +77,7 @@ export function EntryDetailsDialog({ open, onOpenChange, entry }: EntryDetailsDi
 
     const head = [["Produit", "Quantité", "Prix unitaire", "Total"]]
     const body = entry.items.map(item => [
-      item.product.name,
+      item.product.name || "Nom du produit non trouvé", // Access the nested product name
       item.quantity.toString(),
       item.unitPrice.toLocaleString("fr-FR", { style: "currency", currency: "EUR" }),
       item.total.toLocaleString("fr-FR", { style: "currency", currency: "EUR" }),
@@ -160,9 +164,8 @@ export function EntryDetailsDialog({ open, onOpenChange, entry }: EntryDetailsDi
                 </TableHeader>
                 <TableBody>
                   {entry.items.map((item) => {
-                    console.log("[EntryDetailsDialog] Rendering item:", JSON.stringify(item));
                     // Access the nested product name
-                    const productName = item.product?.name;
+                    const productName = item.product.name;
                     return (
                       <TableRow key={item.id}>
                         <TableCell>{productName || "Product name not found"}</TableCell>

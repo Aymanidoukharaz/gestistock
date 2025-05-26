@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Download, Eye, MoreHorizontal, Plus, Printer, Search, Trash2 } from "lucide-react"
+import { CheckCircle, Download, Eye, MoreHorizontal, Plus, Printer, Search, Trash2, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useApiData } from "@/hooks/use-api-data"
 import { Badge } from "@/components/ui/badge"
@@ -20,9 +20,12 @@ import { Pagination } from "@/components/ui/pagination"
 import { EntryDialog } from "./entry-dialog"
 import { EntryDetailsDialog } from "./entry-details-dialog"
 import type { EntryForm } from "@/types/entry-form"
+import { entryFormService } from "@/services/entry-form-service"
+import { useToast } from "@/components/ui/use-toast"
 
 export function EntriesContent() {
-  const { entryForms, suppliers, deleteEntryForm, isLoadingEntryForms, isLoadingSuppliers } = useApiData()
+  const { entryForms, suppliers, deleteEntryForm, isLoadingEntryForms, isLoadingSuppliers, refreshEntryForms } = useApiData()
+  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
@@ -30,6 +33,7 @@ export function EntriesContent() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [selectedEntry, setSelectedEntry] = useState<EntryForm | null>(null)
   const [filteredEntries, setFilteredEntries] = useState<EntryForm[]>([])
+  const [isProcessing, setIsProcessing] = useState<string | null>(null) // To track which entry is being processed
 
   const itemsPerPage = 10
 
@@ -88,6 +92,54 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
     // Mock print functionality
     alert(`Impression du bon d'entrée ${entry.reference}`)
   }
+ 
+  const handleValidate = async (entry: EntryForm) => {
+    if (!entry || !entry.id) return
+ 
+    setIsProcessing(entry.id)
+    try {
+      await entryFormService.completeEntryForm(entry.id)
+      toast({
+        title: "Bon d'entrée validé",
+        description: `Le bon d'entrée ${entry.reference} a été validé avec succès.`,
+        variant: "default",
+      })
+      refreshEntryForms() // Refresh data in parent component
+    } catch (error) {
+      console.error("[EntriesContent] Error validating entry form:", error)
+      toast({
+        title: "Erreur de validation",
+        description: `Échec de la validation du bon d'entrée ${entry.reference}.`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessing(null)
+    }
+  }
+ 
+  const handleCancel = async (entry: EntryForm) => {
+    if (!entry || !entry.id) return
+ 
+    setIsProcessing(entry.id)
+    try {
+      await entryFormService.cancelEntryForm(entry.id)
+      toast({
+        title: "Bon d'entrée annulé",
+        description: `Le bon d'entrée ${entry.reference} a été annulé avec succès.`,
+        variant: "default",
+      })
+      refreshEntryForms() // Refresh data in parent component
+    } catch (error) {
+      console.error("[EntriesContent] Error cancelling entry form:", error)
+      toast({
+        title: "Erreur d'annulation",
+        description: `Échec de l'annulation du bon d'entrée ${entry.reference}.`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessing(null)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -141,12 +193,13 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Validation</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedEntries.length === 0 ? (
                   <TableRow key="empty-entries-row">
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       Aucun bon d'entrée trouvé.
                     </TableCell>
                   </TableRow>
@@ -160,25 +213,25 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
                         <Badge
                           variant={
                             entry.status === "completed"
-                              ? "success"
-                              : entry.status === "pending"
-                                ? "warning"
-                                : "default"
+                                ? "success"
+                                : entry.status === "pending"
+                                  ? "warning"
+                                  : "default"
                           }
                         >
                           {entry.status === "completed"
                             ? "Complété"
                             : entry.status === "pending"
-                              ? "En attente"
-                              : "Brouillon"}
+                                ? "En attente"
+                                : "Brouillon"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         {typeof entry.total === 'number'
                           ? entry.total.toLocaleString("fr-FR", {
-                              style: "currency",
-                              currency: "EUR",
-                            })
+                                style: "currency",
+                                currency: "EUR",
+                              })
                           : "0,00 €"}
                       </TableCell>
                       <TableCell className="text-right">
@@ -207,6 +260,29 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
+                      <TableCell className="text-right">
+                        {(entry.status === "draft" || entry.status === "pending") && (
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancel(entry)}
+                              disabled={isProcessing === entry.id}
+                            >
+                              <XCircle className="mr-2 h-4 w-4" />
+                              Annuler
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleValidate(entry)}
+                              disabled={isProcessing === entry.id}
+                            >
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Valider
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -224,7 +300,16 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
 
       <EntryDialog open={dialogOpen} onOpenChange={setDialogOpen} suppliers={suppliers} />
 
-      <EntryDetailsDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} entry={selectedEntry} />
+      <EntryDetailsDialog
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        entry={selectedEntry}
+        onEntryFormUpdated={() => {
+          // This will trigger a re-fetch of entry forms in useApiData
+          // which will then update the filteredEntries and re-render the table.
+          // No explicit action needed here other than closing the dialog.
+        }}
+      />
     </div>
   )
 }

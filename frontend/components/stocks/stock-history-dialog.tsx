@@ -98,7 +98,6 @@ export function StockHistoryDialog({ open, onOpenChange, product }: StockHistory
                         {new Date(movement.date).toLocaleString("fr-FR")}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm">{movement.reason}</p>
                   </div>
                 </div>
               ))}

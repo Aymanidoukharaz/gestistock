@@ -191,7 +191,6 @@ export function StocksContent() {
                           />
                           <div className="flex items-center justify-between text-xs">
                             <span>Min: {product.min_stock}</span> {/* Use min_stock */}
-                            <span>Max: {product.min_stock * 3}</span> {/* Use min_stock */}
                           </div>
                         </div>
                       </TableCell>

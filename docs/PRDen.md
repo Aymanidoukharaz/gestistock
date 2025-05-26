@@ -24,7 +24,7 @@ This document outlines the product requirements for the GESTISTOCK application. 
 *   Improve inventory accuracy and reduce discrepancies.
 *   Increase efficiency in stock handling processes (entries, exits, tracking).
 *   Provide clear visibility into stock levels and movements to prevent stockouts or overstocking.
-*   Enable better decision-making through accessible reports and dashboard analytics.
+*   Enable better decision-making through accessible dashboard analytics.
 *   Streamline supplier and product management.
 
 ### 2.2. User Goals
@@ -35,7 +35,7 @@ This document outlines the product requirements for the GESTISTOCK application. 
 *   **Stock Managers (`magasinier`):**
     *   To easily record incoming and outgoing stock.
     *   To quickly find product information and current stock levels.
-    *   To access operational reports to understand stock flows.
+    *   To access operational data to understand stock flows.
     *   To efficiently manage daily stock operations.
 
 ### 2.3. Project Goals (for this version of GESTISTOCK)
@@ -54,7 +54,7 @@ This document outlines the product requirements for the GESTISTOCK application. 
 *   **Technical Proficiency:** Medium to High.
 
 #### 3.1.2. Stock Manager / Warehouse Clerk (`magasinier`)
-*   **Description:** Responsible for day-to-day stock operations, including recording goods receipts (entries), goods issues (exits), tracking stock movements, and viewing operational reports.
+*   **Description:** Responsible for day-to-day stock operations, including recording goods receipts (entries), goods issues (exits), tracking stock movements, and viewing operational data.
 *   **Technical Proficiency:** Low to Medium.
 
 ### 3.2. Needs and Pain Points Addressed
@@ -63,7 +63,7 @@ This document outlines the product requirements for the GESTISTOCK application. 
     *   **Need:** Data security and integrity. **Pain Point Addressed:** Role-based access ensures data is only modified by authorized personnel.
 *   **Stock Manager (`magasinier`):**
     *   **Need:** Simple and efficient data entry for stock movements. **Pain Point Addressed:** Streamlined forms for entry and exit operations.
-    *   **Need:** Quick access to accurate stock information. **Pain Point Addressed:** Easy lookup of product quantities, low stock alerts (via dashboard/reports).
+    *   **Need:** Quick access to accurate stock information. **Pain Point Addressed:** Easy lookup of product quantities, low stock alerts (via dashboard).
     *   **Need:** Traceability of stock. **Pain Point Addressed:** History of stock movements and form processing.
 
 ## 4. Product Overview
@@ -82,7 +82,7 @@ The system provides functionalities for:
 *   Tracking Stock Entries (Entry Forms) and Exits (Exit Forms)
 *   Viewing Stock Levels and Movement History
 *   User Management (for Administrators)
-*   Generating various Inventory and Operational Reports
+*   Generating various Inventory and Operational Data
 
 ## 5. Key Features (Detailed)
 
@@ -144,13 +144,6 @@ The system provides functionalities for:
 *   **5.9.3. Edit User Details:** Admins can update a user's name, email, and role.
 *   **5.9.4. Activate/Deactivate User Account:** Admins can toggle the active status of user accounts.
 
-### 5.10. Reporting & Analytics
-*   **5.10.1. Inventory Report:** Provides a snapshot of current inventory, including product quantities, values, and stock status (e.g., normal, low, out of stock).
-*   **5.10.2. Stock Movement Report:** Detailed log of historical stock movements, filterable by various criteria.
-*   **5.10.3. Stock Valuation Report:** Calculates the financial value of the current inventory.
-*   **5.10.4. Product Turnover Report:** Analyzes how quickly products are moving through the inventory.
-*   **5.10.5. Entry Form Reports:** Aggregated data on entry forms (e.g., by period, supplier, product).
-*   **5.10.6. Exit Form Reports:** Aggregated data on exit forms (e.g., by period, destination, product).
 
 ## 6. User Roles and Permissions Summary
 
@@ -158,13 +151,13 @@ The system provides functionalities for:
     *   Full CRUD access to all data entities: Products, Categories, Suppliers, Entry Forms, Exit Forms, Stock Movements, Users.
     *   Can validate and cancel both Entry and Exit Forms.
     *   Can manage user accounts and roles.
-    *   Access to all reports and dashboard features.
+    *   Access to all dashboard features.
 *   **6.2. Stock Manager (`magasinier`):**
     *   Read access to Products, Categories, Suppliers, Entry Forms, Exit Forms, Stock Movements.
     *   Can create Entry Forms and Exit Forms.
     *   Can validate Entry Forms and Exit Forms.
     *   Can create Stock Movements (typically as a result of form validation).
-    *   Access to all reports and dashboard features.
+    *   Access to all dashboard features.
     *   No access to User Management. Cannot create, edit, or delete Categories or Suppliers. Cannot cancel validated forms.
 
 ## 7. Design and UX Considerations
@@ -172,7 +165,7 @@ The system provides functionalities for:
 *   **7.1. Responsive Design:** The application is designed to be usable across various screen sizes, including desktop and mobile devices.
 *   **7.2. Intuitive Navigation:** A clear sidebar and header facilitate easy navigation between different modules.
 *   **7.3. Clear Feedback Mechanisms:** User actions are acknowledged through toast notifications (for success or errors) and visual loading states.
-*   **7.4. Data Visualization:** Charts are used in the Dashboard and potentially in Reports to provide quick insights into data.
+*   **7.4. Data Visualization:** Charts are used in the Dashboard to provide quick insights into data.
 *   **7.5. Light/Dark Theme Support:** Users can switch between light and dark themes for visual comfort.
 
 ## 8. Technical Requirements Overview
@@ -191,7 +184,7 @@ The system provides functionalities for:
 *   **9.5. Usability (Qualitative):** The application is perceived as easy to learn and use by target users (admin, magasinier). (For a student project, this could be demonstrated via user testing with a small group).
 
 ## 10. Future Considerations / Potential Roadmap (Examples)
-*   **10.1. Advanced Reporting:** More complex filtering, custom report generation, export to CSV/PDF.
+*   **10.1. Advanced Data Analysis:** More complex filtering, custom data views, export to CSV/PDF.
 *   **10.2. Barcode/QR Code Integration:** For faster product identification and stock operations.
 *   **10.3. Multi-Language Support:** Internationalization beyond the current French interface.
 *   **10.4. User Profile Management:** Allow authenticated users to change their own password or profile details.

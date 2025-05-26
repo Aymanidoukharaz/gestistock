@@ -117,45 +117,46 @@ interface EntryFormApiPayload {
 }
 
 export const entryFormService = {
-  getAll: async (): Promise<EntryForm[]> => { // Note: Return type will be changed later
-    const cacheBuster = new Date().getTime();
-    const url = `/entry-forms?_cb=${cacheBuster}`;
-    console.log(`[entryFormService.getAll] Fetching: ${url}`);
-    const response = await api.get<any>(url);
-    console.log('[entryFormService.getAll] Raw API Response object:', JSON.stringify(response)); // Log the whole object stringified
-    
-    const responseData = response.data; // Work with a clearly scoped variable
-    console.log('[entryFormService.getAll] responseData (type ' + typeof responseData + '):', JSON.stringify(responseData));
+  getAll: async (): Promise<EntryForm[]> => {
+    let allEntryForms: EntryForm[] = [];
+    let nextPageUrl: string | null = `/entry-forms?_cb=${new Date().getTime()}`;
 
-    let parsedData = responseData; // Initialize with original responseData
+    while (nextPageUrl) {
+      console.log(`[entryFormService.getAll] Fetching: ${nextPageUrl}`);
+      const response: any = await api.get<any>(nextPageUrl);
+      console.log('[entryFormService.getAll] Raw API Response object:', JSON.stringify(response));
 
-    if (typeof responseData === 'string' && responseData.startsWith('+')) {
-      console.warn('[entryFormService.getAll] Detected response string starting with "+". Attempting to strip and parse.');
-      try {
-        parsedData = JSON.parse(responseData.substring(1));
-        console.log('[entryFormService.getAll] Successfully parsed after stripping "+". New type:', typeof parsedData);
-      } catch (e) {
-        console.error('[entryFormService.getAll] Failed to parse response string after stripping "+":', e);
-        // Let it fall through to the original error handling for unexpected structure,
-        // now using the potentially modified (but still problematic if parse failed) parsedData
+      let responseData: any = response.data;
+
+      if (typeof responseData === 'string' && responseData.startsWith('+')) {
+        console.warn('[entryFormService.getAll] Detected response string starting with "+". Attempting to strip and parse.');
+        try {
+          responseData = JSON.parse(responseData.substring(1));
+          console.log('[entryFormService.getAll] Successfully parsed after stripping "+". New type:', typeof responseData);
+        } catch (e) {
+          console.error('[entryFormService.getAll] Failed to parse response string after stripping "+":', e);
+          throw new Error('Failed to parse API response.');
+        }
+      }
+
+      if (responseData && typeof responseData === 'object' && responseData.data) {
+        const currentPageData = Array.isArray(responseData.data) ? responseData.data : [responseData.data];
+        console.log(`[entryFormService.getAll] Detected PAGINATED structure. Transforming current page data (length: ${currentPageData.length})`);
+        const transformedData: EntryForm[] = currentPageData.map(ensureNumericEntryFormFields);
+        allEntryForms = allEntryForms.concat(transformedData);
+        nextPageUrl = responseData.links?.next || null; // Get the next page URL
+      } else if (Array.isArray(responseData)) {
+        console.log(`[entryFormService.getAll] Detected FLAT ARRAY structure. Length: ${responseData.length}. Transforming.`);
+        const transformedData: EntryForm[] = responseData.map(ensureNumericEntryFormFields);
+        allEntryForms = allEntryForms.concat(transformedData);
+        nextPageUrl = null; // No pagination links, so it's the only page
+      } else {
+        console.error('[entryFormService.getAll] UNEXPECTED responseData structure (after potential parse):', responseData);
+        throw new Error('Unexpected data structure received from entry-forms API.');
       }
     }
-
-    // Now use parsedData for the checks
-    if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData) && parsedData.data && Array.isArray(parsedData.data)) {
-      console.log(`[entryFormService.getAll] Detected PAGINATED structure. Transforming parsedData.data (length: ${parsedData.data.length})`);
-      const transformedData: EntryForm[] = parsedData.data.map(ensureNumericEntryFormFields);
-      console.log('[entryFormService.getAll] Transformed paginated data (first item if exists):', transformedData.length > 0 ? transformedData[0] : 'empty array');
-      return transformedData;
-    } else if (Array.isArray(parsedData)) {
-      console.log(`[entryFormService.getAll] Detected FLAT ARRAY structure. Length: ${parsedData.length}. Transforming.`);
-      const transformedData: EntryForm[] = parsedData.map(ensureNumericEntryFormFields);
-      console.log('[entryFormService.getAll] Transformed flat array data (first item if exists):', transformedData.length > 0 ? transformedData[0] : 'empty array');
-      return transformedData;
-    } else {
-      console.error('[entryFormService.getAll] UNEXPECTED responseData structure (after potential parse):', parsedData);
-      throw new Error('Unexpected data structure received from entry-forms API.');
-    }
+    console.log(`[entryFormService.getAll] Fetched total ${allEntryForms.length} entry forms across all pages.`);
+    return allEntryForms;
   },
   
   getById: async (id: string): Promise<EntryForm> => {
@@ -265,6 +266,38 @@ export const entryFormService = {
     return response.data.data; // Adjust if API response structure is different
   },
   
+  completeEntryForm: async (id: string): Promise<EntryForm> => {
+    console.log(`[entryFormService.completeEntryForm] Attempting to complete entry form with ID: ${id}`);
+    const response = await api.post<any>(`/entry-forms/${id}/validate`, { validation_note: 'Completed by user action' });
+    let responseData = response.data;
+    if (typeof responseData === 'string' && responseData.startsWith('+')) {
+      try {
+        responseData = JSON.parse(responseData.substring(1));
+      } catch (e) {
+        console.error('[entryFormService.completeEntryForm] Failed to parse response string after stripping "+":', e);
+        throw new Error('Failed to parse API response for completeEntryForm.');
+      }
+    }
+    console.log(`[entryFormService.completeEntryForm] API response for ID ${id}:`, JSON.stringify(responseData, null, 2));
+    return ensureNumericEntryFormFields(responseData.data);
+  },
+
+  cancelEntryForm: async (id: string): Promise<EntryForm> => {
+    console.log(`[entryFormService.cancelEntryForm] Attempting to cancel entry form with ID: ${id}`);
+    const response = await api.post<any>(`/entry-forms/${id}/cancel`, { cancel_reason: 'Cancelled by user action' });
+    let responseData = response.data;
+    if (typeof responseData === 'string' && responseData.startsWith('+')) {
+      try {
+        responseData = JSON.parse(responseData.substring(1));
+      } catch (e) {
+        console.error('[entryFormService.cancelEntryForm] Failed to parse response string after stripping "+":', e);
+        throw new Error('Failed to parse API response for cancelEntryForm.');
+      }
+    }
+    console.log(`[entryFormService.cancelEntryForm] API response for ID ${id}:`, JSON.stringify(responseData, null, 2));
+    return ensureNumericEntryFormFields(responseData.data);
+  },
+
   delete: async (id: string): Promise<void> => {
     await api.delete(`/entry-forms/${id}`);
   }

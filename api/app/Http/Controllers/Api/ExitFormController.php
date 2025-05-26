@@ -234,45 +234,4 @@ class ExitFormController extends Controller
         ], 'Vérification des doublons effectuée avec succès');
     }
 
-    /**
-     * Générer un rapport des sorties par période.
-     *
-     * @param Request $request Requête contenant les dates de début et de fin.
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function reportByPeriod(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'required|date|date_format:Y-m-d',
-            'end_date' => 'required|date|date_format:Y-m-d|after_or_equal:start_date'
-        ]);
-        
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        
-        $report = $this->exitService->getExitsByPeriod($startDate, $endDate);
-        
-        return ApiResponse::success($report, 'Rapport des sorties généré avec succès');
-    }
-
-    /**
-     * Générer un rapport des sorties par destination.
-     *
-     * @param Request $request Requête contenant les dates de début et de fin optionnelles.
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function reportByDestination(Request $request)
-    {
-        $request->validate([
-            'start_date' => 'nullable|date|date_format:Y-m-d',
-            'end_date' => 'nullable|date|date_format:Y-m-d|after_or_equal:start_date'
-        ]);
-        
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
-        
-        $report = $this->exitService->getExitsByDestination($startDate, $endDate);
-        
-        return ApiResponse::success($report, 'Rapport des sorties par destination généré avec succès');
-    }
 }

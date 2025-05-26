@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\EntryFormController;
 use App\Http\Controllers\Api\ExitFormController;
-use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\DashboardController;
 
 /*
@@ -75,6 +74,7 @@ Route::get('/stock-movements/product/{product}', [StockMovementController::class
         Route::get('users/{id}', [\App\Http\Controllers\Api\UserController::class, 'show']);
         Route::put('users/{id}', [\App\Http\Controllers\Api\UserController::class, 'update']);
         Route::patch('users/{id}/toggle-active', [\App\Http\Controllers\Api\UserController::class, 'toggleActive']);
+        Route::delete('users/{id}', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
         
         // Gestion des catégories (admin uniquement)
         Route::post('categories', [CategoryController::class, 'store']);
@@ -117,19 +117,6 @@ Route::get('/stock-movements/product/{product}', [StockMovementController::class
     Route::post('exit-forms/{exitForm}/cancel', [ExitFormController::class, 'cancel'])->middleware('role:admin');
     Route::get('exit-forms/{exitForm}/history', [ExitFormController::class, 'history'])->middleware('role:admin,magasinier');
     Route::post('exit-forms/check-duplicates', [ExitFormController::class, 'checkDuplicates'])->middleware('role:admin,magasinier');
-      // Routes pour les rapports
-    // Bons d'entrée
-    Route::get('reports/entries/by-period', [EntryFormController::class, 'reportByPeriod'])->middleware('role:admin,magasinier');
-    Route::get('reports/entries/by-supplier', [EntryFormController::class, 'reportBySupplier'])->middleware('role:admin,magasinier');
-    Route::get('reports/entries/by-product', [EntryFormController::class, 'reportByProduct'])->middleware('role:admin,magasinier');
-    
-    // Bons de sortie
-    Route::get('reports/exits/by-period', [ExitFormController::class, 'reportByPeriod'])->middleware('role:admin,magasinier');
-    Route::get('reports/exits/by-destination', [ExitFormController::class, 'reportByDestination'])->middleware('role:admin,magasinier');
-    Route::get('reports/exits/by-product', [EntryFormController::class, 'reportByProduct'])->middleware('role:admin,magasinier');    // Rapports d'inventaire
-    Route::get('reports/inventory', [ReportController::class, 'inventory'])->middleware('role:admin,magasinier');    Route::get('reports/movements', [ReportController::class, 'movements'])->middleware('role:admin,magasinier');
-    Route::get('reports/valuation', [ReportController::class, 'valuation'])->middleware('role:admin,magasinier');
-    Route::get('reports/turnover', [ReportController::class, 'turnover'])->middleware('role:admin,magasinier');
     
     // Routes pour le tableau de bord analytique
     Route::prefix('dashboard')->middleware('role:admin,magasinier')->group(function () {

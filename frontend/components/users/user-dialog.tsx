@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 
 const userSchema = z.object({
-  id: z.string().optional(),
+  id: z.number().optional(),
   name: z.string().min(1, "Le nom est requis"),
   email: z.string().email("Email invalide"),
   role: z.enum(["admin", "magasinier"]),
@@ -45,7 +45,7 @@ export function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      id: "",
+      id: undefined,
       name: "",
       email: "",
       role: "magasinier",
@@ -66,7 +66,7 @@ export function UserDialog({ open, onOpenChange, user }: UserDialogProps) {
       })
     } else {
       form.reset({
-        id: "",
+        id: undefined,
         name: "",
         email: "",
         role: "magasinier",

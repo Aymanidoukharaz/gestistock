@@ -92,18 +92,6 @@ The API is organized around several main resources:
 *   Provides a log of all stock changes.
 *   Endpoints for listing, showing, and creating (often tied to entry/exit form validation) stock movements.
 
-### 9. Reports (`/reports`)
-
-*   Provides aggregated data and analysis.
-*   Key report endpoints:
-    *   `/reports/inventory`: Current inventory status.
-    *   `/reports/movements`: Historical stock movements.
-    *   `/reports/valuation`: Financial valuation of stock.
-    *   `/reports/turnover`: Product turnover rates.
-    *   Entry form reports: `/reports/entries/by-period`, `/reports/entries/by-supplier`, `/reports/entries/by-product`.
-    *   Exit form reports: `/reports/exits/by-period`, `/reports/exits/by-destination`, `/reports/exits/by-product`.
-*   Detailed documentation:
-    *   `docs/inventory-reports.md` (or `api/docs/inventory-reports.md`)
 
 ### 10. Dashboard (`/dashboard`)
 

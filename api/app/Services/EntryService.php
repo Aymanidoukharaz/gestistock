@@ -65,7 +65,8 @@ class EntryService
     public function validate(EntryForm $entryForm, ?string $validationNote = null): EntryForm
     {
         // Vérifier si le bon est en statut draft
-        if ($entryForm->status !== 'draft') {
+        Log::info("Attempting to validate entry form ID: {$entryForm->id} with current status: {$entryForm->status}");
+        if ($entryForm->status !== 'draft' && $entryForm->status !== 'pending') {
             throw new Exception("Le bon d'entrée doit être en statut 'draft' pour être validé.");
         }
         

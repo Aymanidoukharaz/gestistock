@@ -41,8 +41,6 @@ export function Header() {
         return "Fournisseurs"
       case "users":
         return "Utilisateurs"
-      case "reports":
-        return "Rapports"
       case "categories":
         return "Gestion des catégories"
       default:

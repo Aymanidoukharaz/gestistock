@@ -120,4 +120,31 @@ class UserController extends Controller
             "Compte utilisateur $status avec succès"
         );
     }
+
+   /**
+    * Supprimer un utilisateur.
+    *
+    * @param  int  $id
+    * @return \Illuminate\Http\Response
+    */
+   public function destroy($id)
+   {
+       $user = User::find($id);
+
+       if (!$user) {
+           return ApiResponse::notFound('Utilisateur non trouvé');
+       }
+
+       // Empêcher la suppression du compte de l'utilisateur actuellement authentifié
+       if ($user->id === auth()->id()) {
+           return ApiResponse::error('Vous ne pouvez pas supprimer votre propre compte.', [], 403);
+       }
+
+       $user->delete();
+
+       return ApiResponse::success(
+           null,
+           'Utilisateur supprimé avec succès'
+       );
+   }
 }
