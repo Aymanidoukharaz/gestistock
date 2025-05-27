@@ -15,6 +15,7 @@ import {
 import { CheckCircle, Download, Eye, MoreHorizontal, Plus, Printer, Search, Trash2, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useApiData } from "@/hooks/use-api-data"
+import { useAuth } from "@/hooks/use-auth"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
 import { EntryDialog } from "./entry-dialog"
@@ -23,8 +24,10 @@ import type { EntryForm } from "@/types/entry-form"
 import { entryFormService } from "@/services/entry-form-service"
 import { useToast } from "@/components/ui/use-toast"
 
+
 export function EntriesContent() {
   const { entryForms, suppliers, deleteEntryForm, isLoadingEntryForms, isLoadingSuppliers, refreshEntryForms } = useApiData()
+  const { user } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -34,6 +37,8 @@ export function EntriesContent() {
   const [selectedEntry, setSelectedEntry] = useState<EntryForm | null>(null)
   const [filteredEntries, setFilteredEntries] = useState<EntryForm[]>([])
   const [isProcessing, setIsProcessing] = useState<string | null>(null) // To track which entry is being processed
+
+  const isAdmin = user?.role === "admin"
 
   const itemsPerPage = 10
 
@@ -92,8 +97,7 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
     // Mock print functionality
     alert(`Impression du bon d'entrée ${entry.reference}`)
   }
- 
-  const handleValidate = async (entry: EntryForm) => {
+   const handleValidate = async (entry: EntryForm) => {
     if (!entry || !entry.id) return
  
     setIsProcessing(entry.id)
@@ -104,7 +108,7 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
         description: `Le bon d'entrée ${entry.reference} a été validé avec succès.`,
         variant: "default",
       })
-      refreshEntryForms() // Refresh data in parent component
+      refreshEntryForms() // Refresh entry forms data only (no stock changes during validation)
     } catch (error) {
       console.error("[EntriesContent] Error validating entry form:", error)
       toast({
@@ -116,8 +120,7 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
       setIsProcessing(null)
     }
   }
- 
-  const handleCancel = async (entry: EntryForm) => {
+   const handleCancel = async (entry: EntryForm) => {
     if (!entry || !entry.id) return
  
     setIsProcessing(entry.id)
@@ -128,7 +131,7 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
         description: `Le bon d'entrée ${entry.reference} a été annulé avec succès.`,
         variant: "default",
       })
-      refreshEntryForms() // Refresh data in parent component
+      refreshEntryForms() // Refresh entry forms data only (no stock changes during cancellation)
     } catch (error) {
       console.error("[EntriesContent] Error cancelling entry form:", error)
       toast({
@@ -192,14 +195,15 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
                   <TableHead>Fournisseur</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                  <TableHead className="text-right">Validation</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>      
+                  {isAdmin && 
+                  <TableHead className="text-right">Validation</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedEntries.length === 0 ? (
                   <TableRow key="empty-entries-row">
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={isAdmin ? 7 : 6} className="h-24 text-center">
                       Aucun bon d'entrée trouvé.
                     </TableCell>
                   </TableRow>
@@ -248,41 +252,41 @@ console.log("[EntriesContent] calculated pageCount:", pageCount);
                               <Eye className="mr-2 h-4 w-4" />
                               Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handlePrintEntry(entry)}>
-                              <Printer className="mr-2 h-4 w-4" />
-                              Imprimer
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDeleteEntry(entry.id)} className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
+                            {isAdmin && (
+                              <DropdownMenuItem onClick={() => handleDeleteEntry(entry.id)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer                            
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {(entry.status === "draft" || entry.status === "pending") && (
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCancel(entry)}
-                              disabled={isProcessing === entry.id}
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Annuler
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleValidate(entry)}
-                              disabled={isProcessing === entry.id}
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Valider
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-right">
+                          {(entry.status === "draft" || entry.status === "pending") && (
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCancel(entry)}
+                                disabled={isProcessing === entry.id}
+                              >
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Annuler
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleValidate(entry)}
+                                disabled={isProcessing === entry.id}
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Valider
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}

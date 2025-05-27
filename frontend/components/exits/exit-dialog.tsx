@@ -157,7 +157,7 @@ export function ExitDialog({ open, onOpenChange }: ExitDialogProps) {
         destination: values.destination,
         reason: values.reason,
         notes: values.notes || "",
-        status: "completed", // Consider if status should be dynamic
+        status: "draft", // Set to draft status for admin validation
         items: exitItems.map(item => ({
           id: item.id,
           product_id: item.product.id, // Access from nested product object

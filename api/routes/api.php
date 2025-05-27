@@ -56,7 +56,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('stock-movements', [StockMovementController::class, 'index']);
         Route::get('stock-movements/{stockMovement}', [StockMovementController::class, 'show']);
         
-Route::get('/stock-movements/product/{product}', [StockMovementController::class, 'getByProduct']);
+        Route::get('/stock-movements/product/{product}', [StockMovementController::class, 'getByProduct']);
         // Consultation des bons d'entrée
         Route::get('entry-forms', [EntryFormController::class, 'index']);
         Route::get('entry-forms/{entryForm}', [EntryFormController::class, 'show']);

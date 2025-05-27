@@ -95,21 +95,14 @@ class EntryService
                 // Étape 2: Changer le statut en 'pending'
                 $entryForm->status = 'pending';
                 $entryForm->save();
-                
-                // Étape 3: Traiter chaque ligne du bon d'entrée
+                  // Étape 3: Traiter chaque ligne du bon d'entrée
+                // Note: Stock quantities are no longer updated during validation
+                // as per user requirement. Only status change is performed.
                 foreach ($entryForm->entryItems as $item) {
                     $product = Product::findOrFail($item->product_id);
                     
-                    // Mettre à jour le stock (quantité et prix si nécessaire)
-                    $this->stockService->updateStock($product, $item->quantity, $item->unit_price);
-                    
-                    // Créer un mouvement de stock pour cette entrée
-                    $this->stockService->createStockMovement(
-                        $product,
-                        'entry',
-                        $item->quantity,
-                        "Entrée de stock via bon #{$entryForm->reference}"
-                    );
+                    // Log the validation without updating stock
+                    Log::info("Bon d'entrée #{$entryForm->reference} validé pour le produit {$product->name} - Quantité: {$item->quantity} (Stock non modifié)");
                 }
 
                 // Étape 4: Changer le statut en 'completed' et enregistrer dans l'historique
@@ -179,24 +172,11 @@ class EntryService
         $oldStatus = $entryForm->status;
 
         // Transaction pour assurer l'intégrité des données
-        return DB::transaction(function () use ($entryForm, $oldStatus, $reason) {
-            try {
-                // Si le bon était en statut 'completed', il faut annuler l'impact sur le stock
+        return DB::transaction(function () use ($entryForm, $oldStatus, $reason) {            try {
+                // Stock impact is no longer reversed during cancellation
+                // as per user requirement. Only status change is performed.
                 if ($oldStatus === 'completed') {
-                    foreach ($entryForm->entryItems as $item) {
-                        $product = Product::findOrFail($item->product_id);
-                        
-                        // Annuler l'impact sur le stock (quantité négative pour diminuer)
-                        $this->stockService->updateStock($product, -$item->quantity);
-                        
-                        // Créer un mouvement de stock pour cette annulation
-                        $this->stockService->createStockMovement(
-                            $product,
-                            'exit',
-                            $item->quantity,
-                            "Annulation du bon d'entrée #{$entryForm->reference}"
-                        );
-                    }
+                    Log::info("Annulation du bon d'entrée #{$entryForm->reference} - Stock non modifié comme demandé");
                 }
 
                 // Changer le statut en 'cancelled'

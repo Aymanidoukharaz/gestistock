@@ -46,5 +46,37 @@ export const exitFormService = {
   
   delete: async (id: string): Promise<void> => {
     await api.delete(`/exit-forms/${id}`);
+  },
+
+  completeExitForm: async (id: string): Promise<ExitForm> => {
+    console.log(`[exitFormService.completeExitForm] Attempting to complete exit form with ID: ${id}`);
+    const response = await api.post<any>(`/exit-forms/${id}/validate`, { validation_note: 'Completed by user action' });
+    let responseData = response.data;
+    if (typeof responseData === 'string' && responseData.startsWith('+')) {
+      try {
+        responseData = JSON.parse(responseData.substring(1));
+      } catch (e) {
+        console.error('[exitFormService.completeExitForm] Failed to parse response string after stripping "+":', e);
+        throw new Error('Failed to parse API response for completeExitForm.');
+      }
+    }
+    console.log(`[exitFormService.completeExitForm] API response for ID ${id}:`, JSON.stringify(responseData, null, 2));
+    return responseData.data;
+  },
+
+  cancelExitForm: async (id: string): Promise<ExitForm> => {
+    console.log(`[exitFormService.cancelExitForm] Attempting to cancel exit form with ID: ${id}`);
+    const response = await api.post<any>(`/exit-forms/${id}/cancel`, { reason: 'Cancelled by user action' });
+    let responseData = response.data;
+    if (typeof responseData === 'string' && responseData.startsWith('+')) {
+      try {
+        responseData = JSON.parse(responseData.substring(1));
+      } catch (e) {
+        console.error('[exitFormService.cancelExitForm] Failed to parse response string after stripping "+":', e);
+        throw new Error('Failed to parse API response for cancelExitForm.');
+      }
+    }
+    console.log(`[exitFormService.cancelExitForm] API response for ID ${id}:`, JSON.stringify(responseData, null, 2));
+    return responseData.data;
   }
 };

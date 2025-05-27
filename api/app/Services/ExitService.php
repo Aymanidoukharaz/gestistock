@@ -74,9 +74,8 @@ class ExitService
                     $exitForm->status,
                     'pending',
                     $validationNote ?? "Début du processus de validation"
-                );
-                
-                // Étape 2: Vérifier la disponibilité du stock pour tous les produits
+                );                // Étape 2: Vérifier la disponibilité du stock pour tous les produits
+                // (checking is kept but stock quantities won't be updated)
                 foreach ($exitForm->exitItems as $item) {
                     $product = Product::findOrFail($item->product_id);
                     
@@ -91,21 +90,14 @@ class ExitService
                 // Étape 3: Changer le statut en 'pending'
                 $exitForm->status = 'pending';
                 $exitForm->save();
-                
-                // Étape 4: Traiter chaque ligne du bon de sortie
+                  // Étape 4: Traiter chaque ligne du bon de sortie
+                // Note: Stock quantities are no longer updated during validation
+                // as per user requirement. Only status change is performed.
                 foreach ($exitForm->exitItems as $item) {
                     $product = Product::findOrFail($item->product_id);
                     
-                    // Soustraire la quantité du stock (quantité négative)
-                    $this->stockService->updateStock($product, -$item->quantity);
-                    
-                    // Créer un mouvement de stock pour cette sortie
-                    $this->stockService->createStockMovement(
-                        $product,
-                        'exit',
-                        $item->quantity,
-                        "Sortie de stock via bon #{$exitForm->reference}"
-                    );
+                    // Log the validation without updating stock
+                    Log::info("Bon de sortie #{$exitForm->reference} validé pour le produit {$product->name} - Quantité: {$item->quantity} (Stock non modifié)");
                 }
 
                 // Étape 5: Changer le statut en 'completed' et enregistrer dans l'historique
@@ -204,24 +196,11 @@ class ExitService
         $oldStatus = $exitForm->status;
 
         // Transaction pour assurer l'intégrité des données
-        return DB::transaction(function () use ($exitForm, $oldStatus, $reason) {
-            try {
-                // Si le bon était en statut 'completed', il faut annuler l'impact sur le stock
+        return DB::transaction(function () use ($exitForm, $oldStatus, $reason) {            try {
+                // Stock impact is no longer reversed during cancellation
+                // as per user requirement. Only status change is performed.
                 if ($oldStatus === 'completed') {
-                    foreach ($exitForm->exitItems as $item) {
-                        $product = Product::findOrFail($item->product_id);
-                        
-                        // Annuler l'impact sur le stock (quantité positive pour augmenter)
-                        $this->stockService->updateStock($product, $item->quantity);
-                        
-                        // Créer un mouvement de stock pour cette annulation
-                        $this->stockService->createStockMovement(
-                            $product,
-                            'entry',
-                            $item->quantity,
-                            "Annulation du bon de sortie #{$exitForm->reference}"
-                        );
-                    }
+                    Log::info("Annulation du bon de sortie #{$exitForm->reference} - Stock non modifié comme demandé");
                 }
 
                 // Changer le statut en 'cancelled'

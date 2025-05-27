@@ -38,6 +38,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   const isAdmin = user?.role === "admin"
+  const isManager = user?.role === "magasinier"
 
   return (
     <div className="hidden border-r bg-white shadow-sm dark:bg-gray-900 dark:border-gray-800 md:flex md:w-64 md:flex-col">
@@ -78,7 +79,7 @@ export function Sidebar() {
           </div>
 
           {/* Section Opérations - visible uniquement pour les admins */}
-          {isAdmin && (
+          {  (
             <div className="px-3 py-6">
               <h3 className="px-4 mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">
                 Opérations
@@ -96,12 +97,16 @@ export function Sidebar() {
                   title="Bons de sortie"
                   isActive={pathname.startsWith("/exits")}
                 />
-                <SidebarItem
+                {isAdmin && (
+                  <SidebarItem
                   href="/suppliers"
                   icon={<Truck className="h-4.5 w-4.5" />}
                   title="Fournisseurs"
                   isActive={pathname.startsWith("/suppliers")}
                 />
+                )}
+                
+              
               </nav>
             </div>
           )}

@@ -15,6 +15,7 @@ import {
 import { AlertTriangle, Download, Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useApiData } from "@/hooks/use-api-data"
+import { useAuth } from "@/hooks/use-auth"
 import { ProductDialog } from "./product-dialog"
 import type { Product } from "@/types/product"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +32,7 @@ export function ProductsContent() {
     isLoadingProducts,
     isLoadingCategories
   } = useApiData()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [currentPage, setCurrentPage] = useState(1)
@@ -39,6 +41,9 @@ export function ProductsContent() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
 
   const itemsPerPage = 10
+
+  // Check if current user is admin
+  const isAdmin = user?.role === "admin"
 
   useEffect(() => {
     let result = [...products]
@@ -103,12 +108,13 @@ export function ProductsContent() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Produits</h2>
           <p className="text-muted-foreground">Gérez votre catalogue de produits</p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button onClick={handleAddProduct}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter un produit
-          </Button>
+        </div>        <div className="flex flex-col gap-2 sm:flex-row">
+          {isAdmin && (
+            <Button onClick={handleAddProduct}>
+              <Plus className="mr-2 h-4 w-4" />
+              Ajouter un produit
+            </Button>
+          )}
         </div>
       </div>
 
@@ -145,21 +151,19 @@ export function ProductsContent() {
           </div>
 
           <div className="mt-4 rounded-md border">
-            <Table>
-              <TableHeader>
+            <Table>              <TableHeader>
                 <TableRow>
                   <TableHead>Référence</TableHead>
                   <TableHead>Nom</TableHead>
                   <TableHead>Catégorie</TableHead>
                   <TableHead className="text-right">Prix</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
-              </TableHeader>
-              <TableBody>
+              </TableHeader>              <TableBody>
                 {paginatedProducts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={isAdmin ? 6 : 5} className="h-24 text-center">
                       Aucun produit trouvé.
                     </TableCell>
                   </TableRow>
@@ -184,34 +188,35 @@ export function ProductsContent() {
                           )}
                           <span className={product.quantity < product.min_stock ? "text-destructive" : ""}>
                             {product.quantity}
-                          </span>
-                        </div>
+                          </span>                        </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Ouvrir menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditProduct(product)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Modifier
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Ouvrir menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Modifier
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}
