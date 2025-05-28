@@ -8,9 +8,7 @@ use Illuminate\Validation\Factory;
 
 class ValidationServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    
     public function register(): void
     {
         $this->app->singleton('validator', function ($app) {
@@ -18,9 +16,7 @@ class ValidationServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    
     public function boot(): void
     {
         // Ceci est juste pour s'assurer que la façade Validator est disponible

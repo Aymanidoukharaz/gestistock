@@ -1,0 +1,76 @@
+usecaseDiagram
+    actor Administrateur
+    Administrateur --> (GererUtilisateurs)
+    Administrateur --> (GererProduits)
+    Administrateur --> (GererCategories)
+    Administrateur --> (GererFournisseurs)
+    Administrateur --> (GererMouvementsStock)
+    Administrateur --> (GererBonsEntree)
+    Administrateur --> (GererBonsSortie)
+    A --> (ConsulterTableauBord)
+
+    subgraph GestionUtilisateurs
+        (GererUtilisateurs) --> (CreerUtilisateur)
+        (GererUtilisateurs) --> (MettreAJourUtilisateur)
+        (GererUtilisateurs) --> (ActiverDesactiverUtilisateur)
+        (GererUtilisateurs) --> (SupprimerUtilisateur)
+        (GererUtilisateurs) --> (ConsulterUtilisateurs)
+    end
+
+    subgraph GestionProduits
+        (GererProduits) --> (CreerProduit)
+        (GererProduits) --> (MettreAJourProduit)
+        (GererProduits) --> (SupprimerProduit)
+        (GererProduits) --> (ConsulterProduits)
+    end
+
+    subgraph GestionCategories
+        (GererCategories) --> (CreerCategorie)
+        (GererCategories) --> (MettreAJourCategorie)
+        (GererCategories) --> (SupprimerCategorie)
+        (GererCategories) --> (ConsulterCategories)
+    end
+
+    subgraph GestionFournisseurs
+        (GererFournisseurs) --> (CreerFournisseur)
+        (GererFournisseurs) --> (MettreAJourFournisseur)
+        (GererFournisseurs) --> (SupprimerFournisseur)
+        (GererFournisseurs) --> (ConsulterFournisseurs)
+    end
+
+    subgraph GestionMouvementsStock
+        (GererMouvementsStock) --> (CreerMouvementStock)
+        (GererMouvementsStock) --> (MettreAJourMouvementStock)
+        (GererMouvementsStock) --> (SupprimerMouvementStock)
+        (GererMouvementsStock) --> (ConsulterMouvementsStock)
+        (GererMouvementsStock) --> (ConsulterMouvementsParProduit)
+    end
+
+    subgraph GestionBonsEntree
+        (GererBonsEntree) --> (CreerBonEntree)
+        (GererBonsEntree) --> (MettreAJourBonEntree)
+        (GererBonsEntree) --> (SupprimerBonEntree)
+        (GererBonsEntree) --> (ConsulterBonsEntree)
+        (GererBonsEntree) --> (ValiderBonEntree)
+        (GererBonsEntree) --> (AnnulerBonEntree)
+        (GererBonsEntree) --> (VerifierDoublonsBonsEntree)
+        (GererBonsEntree) --> (ConsulterHistoriqueBonsEntree)
+    end
+
+    subgraph GestionBonsSortie
+        (GererBonsSortie) --> (CreerBonSortie)
+        (GererBonsSortie) --> (MettreAJourBonSortie)
+        (GererBonsSortie) --> (SupprimerBonSortie)
+        (GererBonsSortie) --> (ConsulterBonsSortie)
+        (GererBonsSortie) --> (ValiderBonSortie)
+        (GererBonsSortie) --> (AnnulerBonSortie)
+        (GererBonsSortie) --> (VerifierDoublonsBonsSortie)
+        (GererBonsSortie) --> (ConsulterHistoriqueBonsSortie)
+    end
+
+    subgraph TableauDeBord
+        (ConsulterTableauBord) --> (ConsulterResumeStock)
+        (ConsulterTableauBord) --> (ConsulterMouvementsRecents)
+        (ConsulterTableauBord) --> (AnalyserStockParCategorie)
+        (ConsulterTableauBord) --> (ConsulterGraphiquesMouvementsStock)
+    end

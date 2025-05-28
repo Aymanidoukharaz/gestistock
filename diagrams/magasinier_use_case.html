@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Magasinier Use Case Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #ffffff; /* White background for the image */
+        }
+    </style>
+</head>
+<body>
+    <div class="mermaid">
+        graph TD
+            M[Magasinier] --> (ConsulterProduits)
+            M --> (ConsulterCategories)
+            M --> (ConsulterFournisseurs)
+            M --> (ConsulterMouvementsStock)
+            M --> (GererBonsEntree)
+            M --> (GererBonsSortie)
+            M --> (ConsulterTableauBord)
+
+            subgraph ConsultationProduits
+                (ConsulterProduits) --> (ConsulterDetailsProduit)
+                (ConsulterProduits) --> (ConsulterCategoriesProduits)
+            end
+
+            subgraph ConsultationCategories
+                (ConsulterCategories) --> (ConsulterDetailsCategorie)
+            end
+
+            subgraph ConsultationFournisseurs
+                (ConsulterFournisseurs) --> (ConsulterDetailsFournisseur)
+            end
+
+            subgraph ConsultationMouvementsStock
+                (ConsulterMouvementsStock) --> (ConsulterDetailsMouvementStock)
+                (ConsulterMouvementsStock) --> (ConsulterMouvementsParProduit)
+            end
+
+            subgraph GestionBonsEntree
+                (GererBonsEntree) --> (CreerBonEntree)
+                (GererBonsEntree) --> (ConsulterBonsEntree)
+                (GererBonsEntree) --> (ValiderBonEntree)
+                (GererBonsEntree) --> (VerifierDoublonsBonsEntree)
+                (GererBonsEntree) --> (ConsulterHistoriqueBonsEntree)
+            end
+
+            subgraph GestionBonsSortie
+                (GererBonsSortie) --> (CreerBonSortie)
+                (GererBonsSortie) --> (ConsulterBonsSortie)
+                (GererBonsSortie) --> (ValiderBonSortie)
+                (GererBonsSortie) --> (VerifierDoublonsBonsSortie)
+                (GererBonsSortie) --> (ConsulterHistoriqueBonsSortie)
+            end
+
+            subgraph TableauDeBord
+                (ConsulterTableauBord) --> (ConsulterResumeStock)
+                (ConsulterTableauBord) --> (ConsulterMouvementsRecents)
+                (ConsulterTableauBord) --> (AnalyserStockParCategorie)
+                (ConsulterTableauBord) --> (ConsulterGraphiquesMouvementsStock)
+            end
+    </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

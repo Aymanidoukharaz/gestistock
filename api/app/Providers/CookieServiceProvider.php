@@ -7,9 +7,7 @@ use Illuminate\Cookie\CookieJar;
 
 class CookieServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    
     public function register(): void
     {
         $this->app->singleton('cookie', function ($app) {
@@ -17,9 +15,7 @@ class CookieServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    
     public function boot(): void
     {
         //

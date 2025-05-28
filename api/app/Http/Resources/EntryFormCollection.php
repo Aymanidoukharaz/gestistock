@@ -6,11 +6,7 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class EntryFormCollection extends ResourceCollection
 {
-    /**
-     * Transform the resource collection into an array.
-     *
-     * @return array<int|string, mixed>
-     */    public function toArray($request): array
+        public function toArray($request): array
     {
         // The main 'data' key will be automatically wrapped by Laravel,
         // and pagination links/meta will be included by default.
@@ -20,12 +16,7 @@ class EntryFormCollection extends ResourceCollection
         return parent::toArray($request);
     }
 
-    /**
-     * Get additional data that should be returned with the resource array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array
-     */
+    
     public function with($request)
     {
         return [

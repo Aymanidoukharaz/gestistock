@@ -12,11 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * Afficher une liste des utilisateurs.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
     public function index()
     {
         $users = User::paginate(10);
@@ -26,12 +22,7 @@ class UserController extends Controller
         );
     }
 
-    /**
-     * Afficher les informations d'un utilisateur spécifique.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function show($id)
     {
         $user = User::find($id);
@@ -46,13 +37,7 @@ class UserController extends Controller
         );
     }
 
-    /**
-     * Mettre à jour les informations d'un utilisateur.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */    public function update(UserRequest $request, $id)
+        public function update(UserRequest $request, $id)
     {
         $user = User::find($id);
         
@@ -91,12 +76,7 @@ class UserController extends Controller
         );
     }
 
-    /**
-     * Activer ou désactiver un compte utilisateur.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function toggleActive($id)
     {
         $user = User::find($id);
@@ -121,12 +101,7 @@ class UserController extends Controller
         );
     }
 
-   /**
-    * Supprimer un utilisateur.
-    *
-    * @param  int  $id
-    * @return \Illuminate\Http\Response
-    */
+   
    public function destroy($id)
    {
        $user = User::find($id);

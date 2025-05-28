@@ -19,26 +19,13 @@ class EntryService
 {
     protected $stockService;
 
-    /**
-     * Constructeur du service.
-     *
-     * @param StockService $stockService
-     */
+    
     public function __construct(StockService $stockService)
     {
         $this->stockService = $stockService;
     }
     
-    /**
-     * Crée un enregistrement dans l'historique des modifications du bon d'entrée.
-     *
-     * @param EntryForm $entryForm Le bon d'entrée concerné.
-     * @param string $fieldName Le nom du champ modifié.
-     * @param mixed $oldValue L'ancienne valeur.
-     * @param mixed $newValue La nouvelle valeur.
-     * @param string|null $reason La raison de la modification.
-     * @return EntryFormHistory L'historique créé.
-     */
+    
     public function logHistory(
         EntryForm $entryForm,
         string $fieldName,
@@ -54,14 +41,7 @@ class EntryService
             'new_value' => is_array($newValue) ? json_encode($newValue) : $newValue,
             'change_reason' => $reason,
         ]);
-    }    /**
-     * Valider un bon d'entrée et mettre à jour le stock.
-     *
-     * @param EntryForm $entryForm Bon d'entrée à valider.
-     * @param string|null $validationNote Note optionnelle sur la validation
-     * @return EntryForm Le bon d'entrée validé.
-     * @throws Exception Si le bon d'entrée n'est pas en statut draft ou en cas d'erreur.
-     */
+    }    
     public function validate(EntryForm $entryForm, ?string $validationNote = null): EntryForm
     {
         // Vérifier si le bon est en statut draft
@@ -124,13 +104,7 @@ class EntryService
                 throw $e;
             }
         });
-    }    /**
-     * Détecte les doublons potentiels pour un bon d'entrée.
-     * Un doublon est défini uniquement par la référence identique.
-     *
-     * @param array $data Les données du bon d'entrée à vérifier.
-     * @return Collection Les bons d'entrée potentiellement en doublon.
-     */
+    }    
     public function detectDuplicates(array $data): Collection
     {
         $query = EntryForm::query();
@@ -154,14 +128,7 @@ class EntryService
         return $query->with(['supplier', 'items.product'])->get();
     }
 
-    /**
-     * Annule un bon d'entrée et ajuste le stock si nécessaire.
-     *
-     * @param EntryForm $entryForm Le bon d'entrée à annuler.
-     * @param string|null $reason La raison de l'annulation.
-     * @return EntryForm Le bon d'entrée annulé.
-     * @throws Exception Si le bon d'entrée ne peut pas être annulé.
-     */
+    
     public function cancel(EntryForm $entryForm, ?string $reason = null): EntryForm
     {
         // Vérifier si le bon peut être annulé
@@ -201,13 +168,7 @@ class EntryService
         });
     }
 
-    /**
-     * Génère un rapport des entrées par période.
-     *
-     * @param string $startDate Date de début au format Y-m-d.
-     * @param string $endDate Date de fin au format Y-m-d.
-     * @return array Rapport des entrées par période.
-     */
+    
     public function getEntriesByPeriod(string $startDate, string $endDate): array
     {
         $start = Carbon::parse($startDate)->startOfDay();
@@ -237,14 +198,7 @@ class EntryService
         ];
     }
 
-    /**
-     * Génère un rapport des entrées par fournisseur.
-     *
-     * @param int|null $supplierId Identifiant du fournisseur (optionnel).
-     * @param string|null $startDate Date de début au format Y-m-d (optionnel).
-     * @param string|null $endDate Date de fin au format Y-m-d (optionnel).
-     * @return array Rapport des entrées par fournisseur.
-     */
+    
     public function getEntriesBySupplier(?int $supplierId = null, ?string $startDate = null, ?string $endDate = null): array
     {
         $query = EntryForm::where('status', 'completed');
@@ -288,14 +242,7 @@ class EntryService
         return $result;
     }
 
-    /**
-     * Génère un rapport des entrées par produit.
-     *
-     * @param int|null $productId Identifiant du produit (optionnel).
-     * @param string|null $startDate Date de début au format Y-m-d (optionnel).
-     * @param string|null $endDate Date de fin au format Y-m-d (optionnel).
-     * @return array Rapport des entrées par produit.
-     */
+    
     public function getEntriesByProduct(?int $productId = null, ?string $startDate = null, ?string $endDate = null): array
     {
         // Construire la requête de base pour les items d'entrée
@@ -361,12 +308,7 @@ class EntryService
         return $result;
     }
 
-    /**
-     * Vérifier si la date du bon d'entrée est valide (pas dans le futur).
-     *
-     * @param string $date La date à vérifier.
-     * @return bool True si la date est valide.
-     */
+    
     public function isValidDate(string $date): bool
     {
         $entryDate = Carbon::parse($date)->startOfDay();

@@ -9,14 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    /**
-     * Vérifie si l'utilisateur a le rôle requis pour accéder à la ressource.
-     * 
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string|array  $roles  Le ou les rôles autorisés ('admin', 'magasinier', etc.)
-     * @return mixed
-     */
+    
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         // Vérifier si l'utilisateur est connecté

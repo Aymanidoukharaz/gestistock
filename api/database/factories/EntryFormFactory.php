@@ -6,16 +6,10 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntryForm>
- */
+
 class EntryFormFactory extends Factory
 {
-    /**
-     * Définir l'état par défaut du modèle.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         $statuses = ['draft', 'pending', 'completed', 'cancelled'];
@@ -31,11 +25,7 @@ class EntryFormFactory extends Factory
         ];
     }
     
-    /**
-     * Indiquer que le bon d'entrée est en statut brouillon.
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
+    
     public function draft()
     {
         return $this->state(function (array $attributes) {
@@ -45,11 +35,7 @@ class EntryFormFactory extends Factory
         });
     }
     
-    /**
-     * Indiquer que le bon d'entrée est en cours de validation.
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
+    
     public function pending()
     {
         return $this->state(function (array $attributes) {
@@ -59,11 +45,7 @@ class EntryFormFactory extends Factory
         });
     }
     
-    /**
-     * Indiquer que le bon d'entrée est validé.
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
+    
     public function completed()
     {
         return $this->state(function (array $attributes) {
@@ -73,11 +55,7 @@ class EntryFormFactory extends Factory
         });
     }
     
-    /**
-     * Indiquer que le bon d'entrée est annulé.
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
+    
     public function cancelled()
     {
         return $this->state(function (array $attributes) {

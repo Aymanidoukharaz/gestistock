@@ -18,28 +18,20 @@ class EntryFormController extends Controller
 {
     protected $entryService;
     
-    /**
-     * Constructeur avec injection de dépendance du EntryService.
-     * 
-     * @param EntryService $entryService
-     */
+    
     public function __construct(EntryService $entryService)
     {
         $this->entryService = $entryService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */    public function index()
+        public function index()
     {
         $entries = EntryForm::with(['supplier', 'user', 'entryItems', 'entryItems.product'])->paginate(10);
         return (new EntryFormCollection($entries))->additional([
             'success' => true,
             'message' => 'Liste des bons d\'entrée récupérée avec succès'
         ]);
-    }    /**
-     * Store a newly created resource in storage.
-     */    public function store(EntryFormRequest $request)
+    }        public function store(EntryFormRequest $request)
     {
         // Créer la transaction pour assurer l'intégrité des données
         return DB::transaction(function () use ($request) {
@@ -108,18 +100,14 @@ class EntryFormController extends Controller
         });
     }
 
-    /**
-     * Display the specified resource.
-     */    public function show(string $id)
+        public function show(string $id)
     {
         $entry = EntryForm::with(['supplier', 'user', 'entryItems', 'entryItems.product'])->find($id);
         if (!$entry) {
             return ApiResponse::notFound('Bon d\'entrée non trouvé');
         }
         return ApiResponse::success(new EntryFormResource($entry), 'Bon d\'entrée récupéré avec succès');
-    }    /**
-     * Update the specified resource in storage.
-     */    public function update(EntryFormRequest $request, string $id)
+    }        public function update(EntryFormRequest $request, string $id)
     {
         $entry = EntryForm::find($id);
         if (!$entry) {
@@ -167,9 +155,7 @@ class EntryFormController extends Controller
         });
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */    public function destroy(string $id)
+        public function destroy(string $id)
     {
         $entry = EntryForm::find($id);
         if (!$entry) {
@@ -177,13 +163,7 @@ class EntryFormController extends Controller
         }
         $entry->delete();
         return ApiResponse::success(null, 'Bon d\'entrée supprimé avec succès');
-    }    /**
-     * Valider un bon d'entrée et mettre à jour le stock.
-     *
-     * @param string $id Identifiant du bon d'entrée.
-     * @param Request $request La requête HTTP contenant des informations supplémentaires.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    }    
     public function validate(string $id, Request $request)
     {
         try {
@@ -223,12 +203,7 @@ class EntryFormController extends Controller
         }
     }
 
-    /**
-     * Debug a specific entry form with direct DB query.
-     *
-     * @param string $id Identifiant du bon d'entrée.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function debug(string $id)
     {
         // Récupérer le bon directement depuis la base de données
@@ -257,12 +232,7 @@ class EntryFormController extends Controller
         ]);
     }
 
-    /**
-     * Vérifie les doublons potentiels pour un bon d'entrée.
-     *
-     * @param Request $request La requête HTTP contenant les données à vérifier.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function checkDuplicates(Request $request)
     {
         $data = $request->all();
@@ -292,13 +262,7 @@ class EntryFormController extends Controller
         );
     }
 
-    /**
-     * Annule un bon d'entrée.
-     *
-     * @param string $id Identifiant du bon d'entrée.
-     * @param Request $request La requête HTTP contenant la raison de l'annulation.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function cancel(string $id, Request $request)
     {
         try {
@@ -322,12 +286,7 @@ class EntryFormController extends Controller
         }
     }
 
-    /**
-     * Récupère l'historique des modifications d'un bon d'entrée.
-     *
-     * @param string $id Identifiant du bon d'entrée.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function history(string $id)
     {
         $entry = EntryForm::with(['histories.user'])->find($id);

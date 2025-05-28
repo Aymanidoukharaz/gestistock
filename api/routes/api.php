@@ -11,16 +11,7 @@ use App\Http\Controllers\Api\EntryFormController;
 use App\Http\Controllers\Api\ExitFormController;
 use App\Http\Controllers\Api\DashboardController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+
 
 // Routes d'authentification
 Route::group(['prefix' => 'auth'], function () {
@@ -45,12 +36,10 @@ Route::middleware('auth:api')->group(function () {
         Route::get('products/{product}', [ProductController::class, 'show']);
         
         // Consultation des catégories
-        Route::get('categories', [CategoryController::class, 'index']);
-        Route::get('categories/{category}', [CategoryController::class, 'show']);
+        
         
         // Consultation des fournisseurs
-        Route::get('suppliers', [SupplierController::class, 'index']);
-        Route::get('suppliers/{supplier}', [SupplierController::class, 'show']);
+       
         
         // Consultation des mouvements de stock
         Route::get('stock-movements', [StockMovementController::class, 'index']);
@@ -77,11 +66,15 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('users/{id}', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
         
         // Gestion des catégories (admin uniquement)
+        Route::get('categories', [CategoryController::class, 'index']);
+        Route::get('categories/{category}', [CategoryController::class, 'show']);
         Route::post('categories', [CategoryController::class, 'store']);
         Route::put('categories/{category}', [CategoryController::class, 'update']);
         Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
         
         // Gestion des fournisseurs (admin uniquement)
+        Route::get('suppliers', [SupplierController::class, 'index']);
+        Route::get('suppliers/{supplier}', [SupplierController::class, 'show']);
         Route::post('suppliers', [SupplierController::class, 'store']);
         Route::put('suppliers/{supplier}', [SupplierController::class, 'update']);
         Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy']);

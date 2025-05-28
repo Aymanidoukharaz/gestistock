@@ -15,8 +15,6 @@ export function DashboardContent() {
     lowStockAlerts: 0,
     totalValue: 0,
     movementsToday: 0,
-    entriesValue: 0,
-    exitsValue: 0,
     totalCategories: 0,
   })
 
@@ -48,30 +46,12 @@ export function DashboardContent() {
       }).length
 
       // Calculate entries and exits values for the last 7 days
-      const last7Days = new Date()
-      last7Days.setDate(last7Days.getDate() - 7)
-      const last7DaysIso = last7Days.toISOString()
-
-      const recentEntries = stockMovements.filter((m) => new Date(m.date) > last7Days && m.type === "entry")
-      const recentExits = stockMovements.filter((m) => new Date(m.date) > last7Days && m.type === "exit")
-
-      const entriesValue = recentEntries.reduce((sum, movement) => {
-        const product = products.find((p) => p.id === movement.product.id)
-        return sum + (product ? product.price * movement.quantity : 0)
-            }, 0)
-
-      const exitsValue = recentExits.reduce((sum, movement) => {
-        const product = products.find((p) => p.id === movement.product.id)
-        return sum + (product ? product.price * movement.quantity : 0)
-      }, 0)
 
       setStats({
         totalProducts,
         lowStockAlerts,
         totalValue,
         movementsToday,
-        entriesValue,
-        exitsValue,
         totalCategories,
       })
     }

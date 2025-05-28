@@ -1,0 +1,49 @@
+graph TD
+    M[Magasinier] --> (ConsulterProduits)
+    M --> (ConsulterCategories)
+    M --> (ConsulterFournisseurs)
+    M --> (ConsulterMouvementsStock)
+    M --> (GererBonsEntree)
+    M --> (GererBonsSortie)
+    M --> (ConsulterTableauBord)
+
+    subgraph ConsultationProduits
+        (ConsulterProduits) --> (ConsulterDetailsProduit)
+        (ConsulterProduits) --> (ConsulterCategoriesProduits)
+    end
+
+    subgraph ConsultationCategories
+        (ConsulterCategories) --> (ConsulterDetailsCategorie)
+    end
+
+    subgraph ConsultationFournisseurs
+        (ConsulterFournisseurs) --> (ConsulterDetailsFournisseur)
+    end
+
+    subgraph ConsultationMouvementsStock
+        (ConsulterMouvementsStock) --> (ConsulterDetailsMouvementStock)
+        (ConsulterMouvementsStock) --> (ConsulterMouvementsParProduit)
+    end
+
+    subgraph GestionBonsEntree
+        (GererBonsEntree) --> (CreerBonEntree)
+        (GererBonsEntree) --> (ConsulterBonsEntree)
+        (GererBonsEntree) --> (ValiderBonEntree)
+        (GererBonsEntree) --> (VerifierDoublonsBonsEntree)
+        (GererBonsEntree) --> (ConsulterHistoriqueBonsEntree)
+    end
+
+    subgraph GestionBonsSortie
+        (GererBonsSortie) --> (CreerBonSortie)
+        (GererBonsSortie) --> (ConsulterBonsSortie)
+        (GererBonsSortie) --> (ValiderBonSortie)
+        (GererBonsSortie) --> (VerifierDoublonsBonsSortie)
+        (GererBonsSortie) --> (ConsulterHistoriqueBonsSortie)
+    end
+
+    subgraph TableauDeBord
+        (ConsulterTableauBord) --> (ConsulterResumeStock)
+        (ConsulterTableauBonsEntree) --> (ConsulterMouvementsRecents)
+        (ConsulterTableauBonsEntree) --> (AnalyserStockParCategorie)
+        (ConsulterTableauBonsEntree) --> (ConsulterGraphiquesMouvementsStock)
+    end

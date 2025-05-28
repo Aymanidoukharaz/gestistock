@@ -12,11 +12,7 @@ class ExitForm extends Model
 {
     use HasFactory;
 
-    /**
-     * Les attributs qui sont mass assignable.
-     *
-     * @var array<int, string>
-     */
+    
     protected $fillable = [
         'reference',
         'date',
@@ -27,49 +23,29 @@ class ExitForm extends Model
         'user_id',
     ];
 
-    /**
-     * Les attributs qui doivent être castés.
-     *
-     * @var array<string, string>
-     */
+    
     protected $casts = [
         'date' => 'date',
     ];
 
-    /**
-     * Relation avec l'utilisateur.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */    public function user(): BelongsTo
+        public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
     
-    /**
-     * Relation avec les items du bon de sortie.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    
     public function items(): HasMany
     {
         return $this->hasMany(ExitItem::class);
     }
     
-    /**
-     * Alias pour la relation items pour maintenir la cohérence avec le nom utilisé dans le contrôleur.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    
     public function exitItems(): HasMany
     {
         return $this->items();
     }
     
-    /**
-     * Relation avec l'historique du bon de sortie.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    
     public function histories(): HasMany
     {
         return $this->hasMany(ExitFormHistory::class);

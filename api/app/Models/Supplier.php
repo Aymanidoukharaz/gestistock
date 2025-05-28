@@ -10,11 +10,7 @@ class Supplier extends Model
 {
     use HasFactory;
 
-    /**
-     * Les attributs qui sont mass assignable.
-     *
-     * @var array<int, string>
-     */
+    
     protected $fillable = [
         'name',
         'email',
@@ -23,11 +19,7 @@ class Supplier extends Model
         'notes',
     ];
 
-    /**
-     * Relation avec les bons d'entrée.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    
     public function entryForms(): HasMany
     {
         return $this->hasMany(EntryForm::class);

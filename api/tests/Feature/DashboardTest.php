@@ -25,30 +25,28 @@ class DashboardTest extends TestCase
     {
         parent::setUp();
 
-        // Créer un utilisateur pour les tests
+        
         $this->user = User::factory()->create([
             'role' => 'admin'
         ]);
 
-        // Générer un token JWT pour l'utilisateur
+        
         $this->token = auth()->login($this->user);
 
-        // Créer des données de test
+        
         $this->createTestData();
     }
 
-    /**
-     * Crée un ensemble de données de test pour les tableaux de bord
-     */
+    
     private function createTestData()
     {
-        // Créer des catégories
+        
         $categories = Category::factory()->count(3)->create();
         
-        // Créer un fournisseur
+        
         $supplier = Supplier::factory()->create();
 
-        // Créer des produits
+        
         $products = [];
         foreach ($categories as $category) {
             $productsForCategory = Product::factory()->count(5)->create([
@@ -61,21 +59,21 @@ class DashboardTest extends TestCase
             $products = array_merge($products, $productsForCategory->toArray());
         }
 
-        // Créer un produit en rupture de stock
+        
         Product::factory()->create([
             'category_id' => $categories[0]->id,
             'quantity' => 0,
             'min_stock' => 5,
         ]);
 
-        // Créer un produit en stock faible
+        
         Product::factory()->create([
             'category_id' => $categories[1]->id,
             'quantity' => 3,
             'min_stock' => 10,
         ]);
 
-        // Créer des entrées récentes
+        
         $entryForm = EntryForm::factory()->create([
             'supplier_id' => $supplier->id,
             'date' => Carbon::now()->subDays(5),
@@ -84,14 +82,14 @@ class DashboardTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
-        // Créer des sorties récentes
+        
         $exitForm = ExitForm::factory()->create([
             'date' => Carbon::now()->subDays(3),
             'status' => 'validated',
             'user_id' => $this->user->id,
         ]);
 
-        // Créer des mouvements de stock
+        
         foreach (range(1, 10) as $i) {
             StockMovement::factory()->create([
                 'product_id' => $products[array_rand($products)]['id'],
@@ -103,7 +101,7 @@ class DashboardTest extends TestCase
         }
     }
 
-    /** @test */
+    
     public function it_returns_dashboard_summary()
     {
         $response = $this->withHeaders([
@@ -140,7 +138,7 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_returns_stock_trends()
     {
         $response = $this->withHeaders([
@@ -164,7 +162,7 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_returns_category_analysis()
     {
         $response = $this->withHeaders([
@@ -196,7 +194,7 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_returns_product_performance()
     {
         $response = $this->withHeaders([
@@ -228,7 +226,7 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_returns_activity_metrics()
     {
         $response = $this->withHeaders([
@@ -251,7 +249,7 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_returns_alerts()
     {
         $response = $this->withHeaders([
@@ -275,21 +273,21 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function unauthorized_users_cannot_access_dashboard()
     {
-        // Test sans authentification
+        
         $response = $this->getJson('/api/dashboard/summary');
         $response->assertStatus(401);
 
-        // Créer un utilisateur non-authentifié
+        
         $regularUser = User::factory()->create([
-            'role' => 'user' // Rôle qui n'a pas d'accès
+            'role' => 'user' 
         ]);
         
         $regularToken = auth()->login($regularUser);
         
-        // Test avec un utilisateur non autorisé
+        
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $regularToken,
         ])->getJson('/api/dashboard/summary');
@@ -297,7 +295,7 @@ class DashboardTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    
     public function it_filters_stock_trends_by_category()
     {
         $category = Category::first();
@@ -313,7 +311,7 @@ class DashboardTest extends TestCase
             ]);
     }
 
-    /** @test */
+    
     public function it_sorts_product_performance_by_different_criteria()
     {
         $sortCriteria = ['rotation', 'value', 'turnover', 'frequency'];

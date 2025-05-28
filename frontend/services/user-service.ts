@@ -3,7 +3,7 @@ import { User } from "@/types/user";
 
 export const userService = {
   getAll: async (): Promise<User[]> => {
-    const response = await api.get<any>("/users"); // Change to any to handle string response initially
+    const response = await api.get<any>("/users");
     let responseData = response.data;
 
     if (typeof responseData === 'string') {
@@ -19,8 +19,6 @@ export const userService = {
       }
     }
 
-    // Now, responseData should be an object (or array if API directly returned array and it wasn't a string initially)
-    // Also ensure responseData.data is an array, as per User[] return type and API spec { data: User[] }
     if (responseData && typeof responseData === 'object' && responseData.hasOwnProperty('data') && Array.isArray(responseData.data)) {
       const transformedUsers = responseData.data.map((apiUser: any) => {
         const user = {
@@ -31,8 +29,6 @@ export const userService = {
       });
       return transformedUsers as User[];
     } else if (Array.isArray(responseData)) {
-      // This case handles if the parsed JSON string itself was an array,
-      // or if the API returned an array directly (and it wasn't a string).
       const transformedUsers = responseData.map((apiUser: any) => {
         const user = {
           ...apiUser,
@@ -58,15 +54,11 @@ export const userService = {
   },
   
   update: async (user: User): Promise<User> => {
-    console.log("[UserService] update - id:", user.id, "data:", user);
     const endpoint = `/users/${user.id}`;
-    console.log("[UserService] update - endpoint:", endpoint);
     try {
       const response = await api.put<User>(endpoint, user);
-      console.log("[UserService] update - response:", response);
       return response.data;
     } catch (error) {
-      console.error("[UserService] update - error:", error);
       throw error;
     }
   },

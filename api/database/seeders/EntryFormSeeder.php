@@ -9,155 +9,72 @@ use App\Models\EntryItem;
 use App\Models\Supplier;
 use App\Models\Product;
 use App\Models\User;
-use App\Models\StockMovement;
-use Carbon\Carbon;
 
 class EntryFormSeeder extends Seeder
-{    /**
+{
+    /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Vérifier s'il existe déjà des bons d'entrée
-        $existingEntryForms = EntryForm::all();
-        
-        if ($existingEntryForms->isEmpty()) {
-            // Si aucun bon d'entrée n'existe, créer les bons d'entrée par défaut
-            $this->createDefaultEntryForms();
-        } else {
-            // Sinon, afficher les bons d'entrée existants
-            $this->displayExistingEntryForms($existingEntryForms);
-        }
-    }
-    
-    /**
-     * Créer les bons d'entrée par défaut
-     */
-    private function createDefaultEntryForms(): void
-    {
-        // Récupération des données nécessaires
         $admin = User::where('email', 'admin@gestistock.com')->first();
-        $techSupplier = Supplier::where('name', 'TechSupply Inc.')->first();
-        $bureauSupplier = Supplier::where('name', 'Bureau Plus')->first();
-        
-        // Produits pour les bons d'entrée
-        $ecran = Product::where('reference', 'ELEC001')->first();
-        $souris = Product::where('reference', 'ELEC002')->first();
-        $papier = Product::where('reference', 'BUR001')->first();
-        $stylos = Product::where('reference', 'BUR002')->first();
-        
-        // Création du premier bon d'entrée
-        $entryForm1 = EntryForm::create([
-            'reference' => 'ENT-' . date('Ymd') . '-001',
-            'date' => Carbon::now()->subDays(15),
-            'supplier_id' => $techSupplier->id,
-            'notes' => 'Livraison matériel informatique',
+        $supplier1 = Supplier::where('name', 'TechSupply Inc.')->first();
+        $supplier2 = Supplier::where('name', 'Bureau Plus')->first();
+
+        // Vérifier que les utilisateurs et fournisseurs existent
+        if (!$admin || !$supplier1 || !$supplier2) {
+            echo "Erreur: Utilisateurs ou fournisseurs requis introuvables pour EntryFormSeeder\n";
+            return;
+        }
+
+        // Bon d'entrée 1
+        EntryForm::create([
+            'reference' => 'ENT-2024-001',
+            'date' => now()->subDays(10),
+            'supplier_id' => $supplier1->id,
             'status' => 'completed',
-            'total' => 0, // Sera calculé après l'ajout des items
+            'total' => 15000.00,
             'user_id' => $admin->id,
         ]);
-        
-        // Ajout des items au premier bon d'entrée
-        $items1 = [
-            [
-                'product_id' => $ecran->id,
-                'quantity' => 5,
-                'unit_price' => 180.00,
-                'total' => 5 * 180.00,
-            ],
-            [
-                'product_id' => $souris->id,
-                'quantity' => 10,
-                'unit_price' => 25.00,
-                'total' => 10 * 25.00,
-            ],
-        ];
-        
-        $total1 = 0;
-        foreach ($items1 as $item) {
-            $entryItem = new EntryItem($item);
-            $entryForm1->items()->save($entryItem);
-            $total1 += $item['total'];
-            
-            // Création d'un mouvement de stock pour chaque item
-            StockMovement::create([
-                'product_id' => $item['product_id'],
-                'type' => 'entry',
-                'quantity' => $item['quantity'],
-                'reason' => 'Bon d\'entrée ' . $entryForm1->reference,
-                'date' => $entryForm1->date,
-                'user_id' => $admin->id,
-            ]);
-        }
-        
-        // Mise à jour du total du bon d'entrée
-        $entryForm1->update(['total' => $total1]);
-        
-        // Création du deuxième bon d'entrée
-        $entryForm2 = EntryForm::create([
-            'reference' => 'ENT-' . date('Ymd') . '-002',
-            'date' => Carbon::now()->subDays(7),
-            'supplier_id' => $bureauSupplier->id,
-            'notes' => 'Réapprovisionnement fournitures de bureau',
-            'status' => 'completed',
-            'total' => 0, // Sera calculé après l'ajout des items
+
+        // Bon d'entrée 2
+        EntryForm::create([
+            'reference' => 'ENT-2024-002',
+            'date' => now()->subDays(5),
+            'supplier_id' => $supplier2->id,
+            'status' => 'pending',
+            'total' => 8500.50,
             'user_id' => $admin->id,
         ]);
-        
-        // Ajout des items au deuxième bon d'entrée
-        $items2 = [
-            [
-                'product_id' => $papier->id,
-                'quantity' => 20,
-                'unit_price' => 4.50,
-                'total' => 20 * 4.50,
-            ],
-            [
-                'product_id' => $stylos->id,
-                'quantity' => 15,
-                'unit_price' => 6.80,
-                'total' => 15 * 6.80,
-            ],
-        ];
-        
-        $total2 = 0;
-        foreach ($items2 as $item) {
-            $entryItem = new EntryItem($item);
-            $entryForm2->items()->save($entryItem);
-            $total2 += $item['total'];
-            
-            // Création d'un mouvement de stock pour chaque item
-            StockMovement::create([
-                'product_id' => $item['product_id'],
-                'type' => 'entry',
-                'quantity' => $item['quantity'],
-                'reason' => 'Bon d\'entrée ' . $entryForm2->reference,
-                'date' => $entryForm2->date,
-                'user_id' => $admin->id,
-            ]);
-        }
-          // Mise à jour du total du bon d'entrée
-        $entryForm2->update(['total' => $total2]);
-        
-        echo "Bons d'entrée par défaut créés avec succès.\n";
-    }
-    
-    /**
-     * Afficher les bons d'entrée existants
-     */
-    private function displayExistingEntryForms($entryForms): void
-    {
-        echo "Utilisation des bons d'entrée existants dans la base de données:\n";
-        echo "Nombre total de bons d'entrée: " . $entryForms->count() . "\n";
-        
-        // Afficher quelques bons à titre d'exemple (pour éviter une liste trop longue)
-        $sampleEntryForms = $entryForms->take(3);
-        foreach ($sampleEntryForms as $entryForm) {
-            echo "- Réf: {$entryForm->reference}, Date: {$entryForm->date->format('Y-m-d')}, Fournisseur: {$entryForm->supplier->name}, Statut: {$entryForm->status}\n";
-        }
-        
-        if ($entryForms->count() > 3) {
-            echo "... et " . ($entryForms->count() - 3) . " autres bons d'entrée\n";
-        }
+
+        // Bon d'entrée 3
+        EntryForm::create([
+            'reference' => 'ENT-2024-003',
+            'date' => now()->subDays(2),
+            'supplier_id' => $supplier1->id,
+            'status' => 'draft',
+            'total' => 12000.00,
+            'user_id' => $admin->id,
+        ]);
+
+        // Bon d'entrée 4
+        EntryForm::create([
+            'reference' => 'ENT-2024-004',
+            'date' => now()->subDay(),
+            'supplier_id' => $supplier2->id,
+            'status' => 'completed',
+            'total' => 6750.75,
+            'user_id' => $admin->id,
+        ]);
+
+        // Bon d'entrée 5
+        EntryForm::create([
+            'reference' => 'ENT-2024-005',
+            'date' => now(),
+            'supplier_id' => $supplier1->id,
+            'status' => 'pending',
+            'total' => 22500.00,
+            'user_id' => $admin->id,
+        ]);
     }
 }

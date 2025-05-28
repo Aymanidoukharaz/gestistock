@@ -10,14 +10,7 @@ use Exception;
 
 class StockService
 {
-    /**
-     * Mettre à jour le stock d'un produit (augmenter/diminuer).
-     *
-     * @param Product $product Le produit à mettre à jour.
-     * @param int $quantity La quantité à ajouter (positif) ou soustraire (négatif).
-     * @param float|null $newPrice Nouveau prix du produit (optionnel, pour les entrées).
-     * @return Product Le produit mis à jour.
-     */
+    
     public function updateStock(Product $product, int $quantity, float $newPrice = null): Product
     {
         // Mise à jour de la quantité
@@ -38,27 +31,13 @@ class StockService
         return $product;
     }
 
-    /**
-     * Vérifier si un produit a suffisamment de stock pour une sortie.
-     *
-     * @param Product $product Le produit à vérifier.
-     * @param int $quantity La quantité demandée.
-     * @return bool True si le stock est suffisant, false sinon.
-     */
+    
     public function hasEnoughStock(Product $product, int $quantity): bool
     {
         return $product->quantity >= $quantity;
     }
 
-    /**
-     * Créer un mouvement de stock.
-     *
-     * @param Product $product Le produit concerné.
-     * @param string $type Le type de mouvement ('entry' ou 'exit').
-     * @param int $quantity La quantité concernée.
-     * @param string $reason La raison du mouvement.
-     * @return StockMovement Le mouvement de stock créé.
-     */
+    
     public function createStockMovement(Product $product, string $type, int $quantity, string $reason): StockMovement
     {
         return StockMovement::create([
@@ -71,13 +50,7 @@ class StockService
         ]);
     }
 
-    /**
-     * Notifier d'un stock faible.
-     * Note: Dans un système réel, cette méthode pourrait envoyer des emails ou des notifications.
-     *
-     * @param Product $product Le produit en stock faible.
-     * @return void
-     */
+    
     protected function notifyLowStock(Product $product): void
     {
         Log::warning("Stock faible pour le produit {$product->name} (ID: {$product->id}). " .

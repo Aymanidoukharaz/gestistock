@@ -119,20 +119,6 @@ export default function LoginPage() {
               </form>
             </Form>
           </CardContent>
-
-          <CardFooter className="flex flex-col space-y-4 border-t pt-4">
-            <div className="text-sm text-center text-muted-foreground">Comptes de démonstration</div>
-            <div className="grid grid-cols-1 gap-3 w-full">
-              <div className="p-3 bg-secondary/50 rounded-lg border border-secondary text-sm">
-                <p className="font-medium text-primary mb-1">Admin</p>
-                <p className="text-muted-foreground">admin@gestistock.com / admin123</p>
-              </div>
-              <div className="p-3 bg-secondary/50 rounded-lg border border-secondary text-sm">
-                <p className="font-medium text-primary mb-1">Magasinier</p>
-                <p className="text-muted-foreground">magasinier@gestistock.com / maga123</p>
-              </div>
-            </div>
-          </CardFooter>
         </Card>
 
         <div className="mt-6 text-center text-sm text-muted-foreground">

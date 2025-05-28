@@ -2,7 +2,7 @@ import { Product } from "./product";
 
 export interface StockMovement {
   id: string;
-  product: Product; // Changed from productId to full product object
+  product: Product;
   type: "entry" | "exit";
   quantity: number;
   date: string;

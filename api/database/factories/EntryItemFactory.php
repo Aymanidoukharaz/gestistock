@@ -6,16 +6,10 @@ use App\Models\EntryForm;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntryItem>
- */
+
 class EntryItemFactory extends Factory
 {
-    /**
-     * Définir l'état par défaut du modèle.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         $quantity = $this->faker->numberBetween(1, 100);

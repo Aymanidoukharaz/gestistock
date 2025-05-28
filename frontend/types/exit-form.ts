@@ -1,8 +1,8 @@
-import { Product } from "./product"; // Import the Product type
+import { Product } from "./product";
 
 export interface ExitItem {
   id: string;
-  product: Product; // Changed from productId and productName
+  product: Product;
   quantity: number;
 }
 
@@ -15,5 +15,5 @@ export interface ExitForm {
   notes: string;
   status: "draft" | "pending" | "completed";
   items: ExitItem[];
-  total?: number; // Add total, make it optional if not always provided by API
+  total?: number;
 }

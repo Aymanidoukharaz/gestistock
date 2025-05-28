@@ -15,18 +15,14 @@ use Illuminate\Support\Facades\Log; // Added for logging errors
 
 class StockMovementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */    public function index()
+        public function index()
     {
         $movements = StockMovement::with(['product', 'product.category', 'user'])->paginate(10);
         return (new StockMovementCollection($movements))->additional([
             'success' => true,
             'message' => 'Liste des mouvements de stock récupérée avec succès'
         ]);
-    }/**
-     * Store a newly created resource in storage.
-     */    public function store(StockMovementRequest $request)
+    }    public function store(StockMovementRequest $request)
     {
         $validatedData = $request->validated();
 
@@ -65,18 +61,14 @@ class StockMovementController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */    public function show(string $id)
+        public function show(string $id)
     {
         $movement = StockMovement::with(['product', 'product.category', 'user'])->find($id);
         if (!$movement) {
             return ApiResponse::notFound('Mouvement non trouvé');
         }
         return ApiResponse::success(new StockMovementResource($movement), 'Mouvement de stock récupéré avec succès');
-    }/**
-     * Update the specified resource in storage.
-     */    public function update(StockMovementRequest $request, string $id)
+    }    public function update(StockMovementRequest $request, string $id)
     {
         $movement = StockMovement::find($id);
         if (!$movement) {
@@ -89,9 +81,7 @@ class StockMovementController extends Controller
         return ApiResponse::success(new StockMovementResource($movement), 'Mouvement de stock mis à jour avec succès');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */    public function destroy(string $id)
+        public function destroy(string $id)
     {
         $movement = StockMovement::find($id);
         if (!$movement) {
@@ -101,9 +91,7 @@ class StockMovementController extends Controller
         return ApiResponse::success(null, 'Mouvement supprimé avec succès');
     }
 
-/**
-     * Display a listing of the stock movements for a given product.
-     */
+
     public function getByProduct(Product $product)
     {
         $movements = $product->stockMovements()->orderBy('date', 'desc')->get();
@@ -114,9 +102,7 @@ class StockMovementController extends Controller
 
         return ApiResponse::success(StockMovementResource::collection($movements), 'Mouvements de stock pour le produit récupérés avec succès');
     }
-    /**
-     * Retourne les mouvements de stock d'un produit donné.
-     */    public function productMovements($productId)
+        public function productMovements($productId)
     {
         $movements = StockMovement::with(['product', 'product.category', 'user'])
             ->where('product_id', $productId)

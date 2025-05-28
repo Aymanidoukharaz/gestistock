@@ -1,0 +1,96 @@
+classDiagram
+    class Category {
+        +string id
+        +string name
+        +string description
+        +string created_at
+        +string updated_at
+        +number products_count
+    }
+
+    class Product {
+        +string id
+        +string reference
+        +string name
+        +string description
+        +number price
+        +number quantity
+        +number min_stock
+    }
+
+    class Supplier {
+        +string id
+        +string name
+        +string email
+        +string phone
+        +string address
+        +string notes
+    }
+
+    class User {
+        +number id
+        +string name
+        +string email
+        +string role
+        +boolean active
+        +string password
+    }
+
+    class EntryForm {
+        +string id
+        +string reference
+        +string date
+        +string supplierId
+        +string supplierName
+        +string notes
+        +string status
+        +number total
+    }
+
+    class EntryItem {
+        +string id
+        +string productId
+        +string productName
+        +number quantity
+        +number unitPrice
+        +number total
+    }
+
+    class ExitForm {
+        +string id
+        +string reference
+        +string date
+        +string destination
+        +string reason
+        +string notes
+        +string status
+        +number total
+    }
+
+    class ExitItem {
+        +string id
+        +number quantity
+    }
+
+    class StockMovement {
+        +string id
+        +string type
+        +number quantity
+        +string date
+        +string reason
+        +string created_at
+        +string updated_at
+    }
+
+    Category "1" -- "0..*" Product : contient
+    Product "1" -- "0..*" EntryItem : est inclus dans
+    Product "1" -- "0..*" ExitItem : est inclus dans
+    Product "1" -- "0..*" StockMovement : concerne
+    Supplier "1" -- "0..*" EntryForm : fournit
+    EntryForm "1" -- "1..*" EntryItem : contient
+    ExitForm "1" -- "1..*" ExitItem : contient
+    User "1" -- "0..*" EntryForm : cree par
+    User "1" -- "0..*" ExitForm : cree par
+    User "1" -- "0..*" StockMovement : enregistre par
+    EntryItem "1" -- "1" Product : reference
+    ExitItem "1" -- "1" Product : reference

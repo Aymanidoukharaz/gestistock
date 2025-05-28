@@ -9,23 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 class DebugEntryForms extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    
     protected $signature = 'debug:entry-forms';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    
     protected $description = 'Debug entry forms and items creation';
 
-    /**
-     * Execute the console command.
-     */
+    
     public function handle()
     {
         $this->info('Démarrage du test de création de bon d\'entrée et items');

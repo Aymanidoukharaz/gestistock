@@ -17,28 +17,20 @@ class ExitFormController extends Controller
 {
     protected $exitService;
     
-    /**
-     * Constructeur avec injection de dépendance du ExitService.
-     * 
-     * @param ExitService $exitService
-     */
+    
     public function __construct(ExitService $exitService)
     {
         $this->exitService = $exitService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */    public function index()
+        public function index()
     {
         $exits = ExitForm::with(['user', 'exitItems', 'exitItems.product'])->paginate(10);
         return (new ExitFormCollection($exits))->additional([
             'success' => true,
             'message' => 'Liste des bons de sortie récupérée avec succès'
         ]);
-    }    /**
-     * Store a newly created resource in storage.
-     */    public function store(ExitFormRequest $request)
+    }        public function store(ExitFormRequest $request)
     {
         // Créer la transaction pour assurer l'intégrité des données
         return DB::transaction(function () use ($request) {
@@ -82,18 +74,14 @@ class ExitFormController extends Controller
         });
     }
 
-    /**
-     * Display the specified resource.
-     */    public function show(string $id)
+        public function show(string $id)
     {
         $exit = ExitForm::with(['user', 'exitItems', 'exitItems.product'])->find($id);
         if (!$exit) {
             return ApiResponse::notFound('Bon de sortie non trouvé');
         }
         return ApiResponse::success(new ExitFormResource($exit), 'Bon de sortie récupéré avec succès');
-    }    /**
-     * Update the specified resource in storage.
-     */    public function update(ExitFormRequest $request, string $id)
+    }        public function update(ExitFormRequest $request, string $id)
     {
         $exit = ExitForm::find($id);
         if (!$exit) {
@@ -132,9 +120,7 @@ class ExitFormController extends Controller
         });
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */    public function destroy(string $id)
+        public function destroy(string $id)
     {
         $exit = ExitForm::find($id);
         if (!$exit) {
@@ -142,13 +128,7 @@ class ExitFormController extends Controller
         }
         $exit->delete();
         return ApiResponse::success(null, 'Bon de sortie supprimé avec succès');
-    }    /**
-     * Valider un bon de sortie et mettre à jour le stock.
-     *
-     * @param string $id Identifiant du bon de sortie.
-     * @param Request $request Requête contenant une note optionnelle
-     * @return \Illuminate\Http\JsonResponse
-     */
+    }    
     public function validate(string $id, Request $request = null)
     {
         try {
@@ -169,13 +149,7 @@ class ExitFormController extends Controller
         }
     }
 
-    /**
-     * Annuler un bon de sortie et ajuster le stock si nécessaire.
-     *
-     * @param string $id Identifiant du bon de sortie.
-     * @param Request $request Requête contenant une raison d'annulation optionnelle
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function cancel(string $id, Request $request)
     {
         try {
@@ -196,12 +170,7 @@ class ExitFormController extends Controller
         }
     }
 
-    /**
-     * Récupérer l'historique des modifications d'un bon de sortie.
-     *
-     * @param string $id Identifiant du bon de sortie.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function history(string $id)
     {
         $exit = ExitForm::find($id);
@@ -217,12 +186,7 @@ class ExitFormController extends Controller
         ], 'Historique des modifications récupéré avec succès');
     }
 
-    /**
-     * Vérifier les doublons potentiels pour un bon de sortie.
-     *
-     * @param Request $request Requête contenant les données à vérifier.
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function checkDuplicates(Request $request)
     {
         $data = $request->all();
